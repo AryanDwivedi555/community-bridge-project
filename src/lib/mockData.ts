@@ -8,7 +8,7 @@ export interface NeedReport {
   status: 'pending' | 'resolved' | 'assigned';
   syncStatus: 'synced' | 'pending';
   createdAt: string;
-  sharedBy?: string;
+  sharedBy?: string; 
   acceptedBy?: string;
 }
 
