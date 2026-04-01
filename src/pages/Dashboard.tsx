@@ -12,7 +12,7 @@ function urgencyColor(u: number) {
   if (u >= 4) return 'bg-urgency-critical/10 border-urgency-critical/30 text-urgency-critical';
   if (u === 3) return 'bg-urgency-moderate/10 border-urgency-moderate/30 text-urgency-moderate';
   return 'bg-urgency-low/10 border-urgency-low/30 text-urgency-low';
-}
+} 
 
 function urgencyBadge(u: number) {
   if (u >= 4) return 'bg-urgency-critical text-primary-foreground';
