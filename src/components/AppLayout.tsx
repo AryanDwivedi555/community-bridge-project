@@ -3,7 +3,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { TopNavbar } from '@/components/TopNavbar';
 import { ConnectivityBanner } from '@/components/ConnectivityBanner';
-
+ 
 export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider>
