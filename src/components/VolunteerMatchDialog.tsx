@@ -8,7 +8,7 @@ import { MapPin, Car, Calendar } from 'lucide-react';
 
 interface Props {
   needId: string;
-  onClose: () => void;
+  onClose: () => void; 
 }
 
 export function VolunteerMatchDialog({ needId, onClose }: Props) {
