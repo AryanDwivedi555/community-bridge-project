@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { NEED_TYPES, WARDS } from '@/lib/mockData';
 import { Send, Bot, User, CheckCircle, MapPin, Users, AlertTriangle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion'; 
 
 type Message = { role: 'bot' | 'user'; text: string };
 type Step = 'need' | 'urgency' | 'area' | 'people' | 'confirm' | 'done';
