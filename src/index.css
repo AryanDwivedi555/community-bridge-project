@@ -1,11 +1,16 @@
+/* 1. CONSOLIDATED EXTERNAL ASSETS */
+/* Only one @import is allowed, and it MUST be at the very top */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+/* 2. TAILWIND CORE DIRECTIVES */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
- 
+/* 3. SYSTEM VARIABLES & THEMES */
 @layer base {
   :root {
+    /* --- LIGHT MODE CORE --- */
     --background: 210 20% 98%;
     --foreground: 215 25% 15%;
 
@@ -36,15 +41,7 @@
 
     --radius: 0.75rem;
 
-    --sidebar-background: 215 30% 12%;
-    --sidebar-foreground: 210 20% 90%;
-    --sidebar-primary: 217 90% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 25% 18%;
-    --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 215 25% 20%;
-    --sidebar-ring: 217 90% 55%;
-
+    /* --- TACTICAL HELPERS --- */
     --urgency-critical: 0 84% 60%;
     --urgency-moderate: 38 92% 50%;
     --urgency-low: 142 71% 45%;
@@ -52,42 +49,105 @@
     --offline: 0 84% 60%;
     --pending: 38 92% 50%;
     --synced: 142 71% 45%;
+  }
 
-    font-family: 'Inter', system-ui, sans-serif;
+  .dark {
+    /* --- DARK MODE TACTICAL --- */
+    --background: 222 47% 4%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 6%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 4%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
+
+    --secondary: 174 85% 45%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 32% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 174 85% 45%;
+    --accent-foreground: 210 40% 98%;
+
+    --border: 217 32% 17%;
+    --input: 217 32% 17%;
+    --ring: 217 91% 60%;
   }
 }
 
+/* 4. BASE STYLES & RADAR PATTERN */
 @layer base {
   * {
     @apply border-border;
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground antialiased transition-colors duration-500;
+    font-family: 'Inter', system-ui, sans-serif;
+    /* National Grid Radial Pattern */
+    background-image: radial-gradient(circle at center, hsla(215, 25%, 15%, 0.03) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .dark body {
+    background-image: radial-gradient(circle at center, hsla(210, 40%, 98%, 0.03) 1px, transparent 1px);
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+    @apply tracking-tight font-bold italic uppercase;
   }
 }
 
+/* 5. ELITE TACTICAL UTILITIES */
 @layer utilities {
   .gradient-primary {
     background: linear-gradient(135deg, hsl(217 90% 50%), hsl(174 85% 34%));
   }
-  .gradient-card {
-    background: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(210 20% 97%) 100%);
-  }
+
   .text-gradient {
-    background: linear-gradient(135deg, hsl(217 90% 50%), hsl(174 85% 34%));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(217 90% 50%), hsl(174 85% 34%));
   }
+
+  .glass-panel {
+    @apply backdrop-blur-xl border shadow-2xl transition-all duration-500;
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .dark .glass-panel {
+    background: rgba(2, 6, 23, 0.7);
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .text-synced { color: hsl(var(--synced)); }
+  .text-pending { color: hsl(var(--pending)); }
+  .bg-online { background-color: hsl(var(--online)); }
+  .bg-offline { background-color: hsl(var(--offline)); }
+
+  .utility-card {
+    @apply transition-all duration-500 border-none shadow-sm hover:shadow-2xl hover:-translate-y-2;
+  }
+
   .shadow-card {
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
   }
-  .shadow-card-hover {
-    box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.04);
+
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .animate-spin-slow {
+    animation: spin 10s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
 }

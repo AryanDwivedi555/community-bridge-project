@@ -1,42 +1,120 @@
+/**
+ * COMMUNITY BRIDGE: TACTICAL GLOBAL STYLES
+ * High-performance layout fixes for National Grid telemetry.
+ */
+
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-} 
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: background-color 500ms ease-in-out;
+}
 
+/* 1. THEME VARIABLES (Dark Mode Support) */
+.dark #root {
+  background-color: #020617; /* slate-950 */
+}
+
+/* 2. LEAFLET TACTICAL OVERRIDES */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  background-color: transparent !important;
+  font-family: inherit;
+}
+
+/* Custom Marker Styling to remove default Leaflet borders */
+.custom-tactical-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.tactical-popup .leaflet-popup-content-wrapper {
+  @apply rounded-[1.5rem] p-0 overflow-hidden shadow-2xl border-none;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+}
+
+.dark .tactical-popup .leaflet-popup-content-wrapper {
+  background: rgba(15, 23, 42, 0.95);
+  @apply border border-slate-700;
+}
+
+.tactical-popup .leaflet-popup-tip {
+  @apply hidden; /* Cleaner tactical look */
+}
+
+/* 3. FUTURISTIC GLASSMORPISM */
+.glass-panel {
+  @apply backdrop-blur-xl border transition-all duration-500;
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.8);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+/* 4. ANIMATION & INTERACTION */
 .logo {
-  height: 6em;
-  padding: 1.5em;
+  height: 3em;
   will-change: filter;
-  transition: filter 300ms;
+  transition: filter 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  filter: drop-shadow(0 0 1.5em hsla(var(--primary) / 0.4));
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+.card-hover-effect {
+  @apply transition-all duration-500 ease-out;
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-8px) scale(1.01);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+/* 5. TACTICAL UTILITIES */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.animate-spin-slow {
+  animation: spin 8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Professional Typography */
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: hsl(var(--primary) / 0.2);
+  color: hsl(var(--primary));
+}
+
+/* Responsive Fixes */
+@media (max-width: 768px) {
+  #root {
+    padding: 0;
   }
-  to {
-    transform: rotate(360deg);
+  
+  .rounded-\[4rem\] {
+    border-radius: 2rem !important; /* Scale down radius on mobile */
   }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
 }

@@ -5,13 +5,19 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  { ignores: ["dist", "node_modules", ".vite"] },
   { 
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    extends: [
+      js.configs.recommended, 
+      ...tseslint.configs.recommended
+    ],
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+        ...globals.es2020,
+      },
     },
     plugins: {
       "react-hooks": reactHooks,
@@ -19,8 +25,14 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
-      "@typescript-eslint/no-unused-vars": "off",
+      "react-refresh/only-export-components": [
+        "warn", 
+        { allowConstantExport: true }
+      ],
+      // Professional Settings:
+      "@typescript-eslint/no-unused-vars": "warn", // Warn instead of Off to keep code clean
+      "@typescript-eslint/no-explicit-any": "warn", // Discourage 'any' to keep types strong
+      "no-console": ["warn", { allow: ["warn", "error"] }], // Prevent messy console logs in production
     },
   },
 );

@@ -1,7 +1,13 @@
+/**
+ * Community Bridge - Tactical Data Engine
+ * UPDATED: 2026-04-18
+ * FEATURES: GPS Tracking, OTP Security, National Node Support.
+ */
+
 export interface NeedReport {
   id: string;
   needType: 'Food' | 'Medical' | 'Education' | 'Infrastructure' | 'Other';
-  urgency: number;
+  urgency: number; 
   location: string;
   peopleAffected: number;
   description: string;
@@ -10,6 +16,11 @@ export interface NeedReport {
   createdAt: string;
   sharedBy?: string; 
   acceptedBy?: string;
+  // TACTICAL ADDITIONS
+  lat: number; 
+  lng: number; 
+  otp: string; // Secure 4-digit code
+  requesterPhone: string; // For Proximity Notifications
 }
 
 export interface Volunteer {
@@ -21,6 +32,8 @@ export interface Volunteer {
   hasTransport: boolean;
   tasksCompleted: number;
   avatar: string;
+  lat: number; 
+  lng: number; 
 }
 
 export interface NGO {
@@ -31,36 +44,66 @@ export interface NGO {
   logo: string;
 }
 
-export const WARDS = ['Ward A - Riverside', 'Ward B - Hilltop', 'Ward C - Downtown', 'Ward D - Lakeview', 'Ward E - Greenfield'];
+// --- CONSTANTS PRESERVED ---
+export const WARDS = [
+  'Ward A - Riverside', 
+  'Ward B - Hilltop', 
+  'Ward C - Downtown', 
+  'Ward D - Lakeview', 
+  'Ward E - Greenfield'
+];
+
 export const NEED_TYPES = ['Food', 'Medical', 'Education', 'Infrastructure', 'Other'] as const;
-export const SKILLS = ['Medical', 'Teaching', 'Construction', 'Logistics', 'Counselling', 'Technology'];
+
+export const SKILLS = [
+  'Medical', 'Teaching', 'Construction', 'Logistics', 'Counselling', 'Technology'
+];
+
 export const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
+// --- NATIONAL GRID DATABASE (INDIA GPS) ---
 export const mockNeeds: NeedReport[] = [
-  { id: 'n1', needType: 'Food', urgency: 5, location: 'Ward A - Riverside', peopleAffected: 120, description: 'Severe food shortage after flooding. Families need emergency rations.', status: 'pending', syncStatus: 'synced', createdAt: '2026-03-28T10:00:00Z' },
-  { id: 'n2', needType: 'Medical', urgency: 4, location: 'Ward C - Downtown', peopleAffected: 45, description: 'Outbreak of waterborne diseases. Urgent need for medical supplies and personnel.', status: 'pending', syncStatus: 'synced', createdAt: '2026-03-29T08:30:00Z' },
-  { id: 'n3', needType: 'Education', urgency: 2, location: 'Ward B - Hilltop', peopleAffected: 200, description: 'School damaged by storm. Children need temporary learning space.', status: 'resolved', syncStatus: 'synced', createdAt: '2026-03-25T14:00:00Z' },
-  { id: 'n4', needType: 'Infrastructure', urgency: 4, location: 'Ward D - Lakeview', peopleAffected: 300, description: 'Bridge collapsed blocking access to hospital and market.', status: 'pending', syncStatus: 'synced', createdAt: '2026-03-30T06:00:00Z' },
-  { id: 'n5', needType: 'Food', urgency: 3, location: 'Ward E - Greenfield', peopleAffected: 80, description: 'Crop failure affecting small farming community. Need seed and supplies.', status: 'assigned', syncStatus: 'synced', createdAt: '2026-03-27T11:00:00Z' },
-  { id: 'n6', needType: 'Medical', urgency: 5, location: 'Ward A - Riverside', peopleAffected: 60, description: 'Pregnant women need prenatal care. No medical facility nearby.', status: 'pending', syncStatus: 'synced', createdAt: '2026-03-30T09:00:00Z' },
-  { id: 'n7', needType: 'Other', urgency: 1, location: 'Ward B - Hilltop', peopleAffected: 30, description: 'Community center needs painting and minor repairs before monsoon.', status: 'resolved', syncStatus: 'synced', createdAt: '2026-03-22T16:00:00Z' },
-  { id: 'n8', needType: 'Infrastructure', urgency: 3, location: 'Ward C - Downtown', peopleAffected: 150, description: 'Street lighting damaged. Safety concerns for women and children at night.', status: 'pending', syncStatus: 'pending', createdAt: '2026-03-31T07:00:00Z' },
+  { 
+    id: 'n1', needType: 'Food', urgency: 5, location: 'Patna, Bihar', 
+    peopleAffected: 120, description: 'Severe food shortage after flooding.', 
+    status: 'pending', syncStatus: 'synced', createdAt: '2026-04-10T10:00:00Z', 
+    lat: 25.5941, lng: 85.1376, otp: '4821', requesterPhone: '+919876543210' 
+  },
+  { 
+    id: 'n2', needType: 'Medical', urgency: 4, location: 'Mumbai, MH', 
+    peopleAffected: 45, description: 'Outbreak of waterborne diseases.', 
+    status: 'pending', syncStatus: 'synced', createdAt: '2026-04-12T08:30:00Z', 
+    lat: 19.0760, lng: 72.8777, otp: '9902', requesterPhone: '+919876543211' 
+  },
+  { 
+    id: 'n3', needType: 'Education', urgency: 2, location: 'Delhi NCR', 
+    peopleAffected: 200, description: 'School infrastructure damaged.', 
+    status: 'resolved', syncStatus: 'synced', createdAt: '2026-04-05T14:00:00Z', 
+    lat: 28.6139, lng: 77.2090, otp: '1122', requesterPhone: '+919876543212' 
+  },
+  { 
+    id: 'n4', needType: 'Infrastructure', urgency: 4, location: 'Mohali, PB', 
+    peopleAffected: 300, description: 'Bridge collapsed near Sector 62.', 
+    status: 'pending', syncStatus: 'synced', createdAt: '2026-04-15T06:00:00Z', 
+    lat: 30.7046, lng: 76.7179, otp: '8845', requesterPhone: '+919876543213' 
+  },
+  { 
+    id: 'n5', needType: 'Food', urgency: 3, location: 'Bangalore, KA', 
+    peopleAffected: 80, description: 'Supply chain disruption in local shelter.', 
+    status: 'assigned', syncStatus: 'synced', createdAt: '2026-04-14T11:00:00Z', 
+    lat: 12.9716, lng: 77.5946, otp: '5561', requesterPhone: '+919876543214' 
+  }
 ];
 
 export const mockVolunteers: Volunteer[] = [
-  { id: 'v1', name: 'Priya Sharma', skills: ['Medical', 'Counselling'], availability: ['Monday', 'Wednesday', 'Friday'], location: 'Ward A - Riverside', hasTransport: true, tasksCompleted: 12, avatar: 'PS' },
-  { id: 'v2', name: 'Rahul Patel', skills: ['Construction', 'Logistics'], availability: ['Tuesday', 'Thursday', 'Saturday'], location: 'Ward C - Downtown', hasTransport: true, tasksCompleted: 8, avatar: 'RP' },
-  { id: 'v3', name: 'Anita Desai', skills: ['Teaching', 'Counselling'], availability: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], location: 'Ward B - Hilltop', hasTransport: false, tasksCompleted: 15, avatar: 'AD' },
-  { id: 'v4', name: 'Vikram Singh', skills: ['Logistics', 'Technology'], availability: ['Saturday', 'Sunday'], location: 'Ward D - Lakeview', hasTransport: true, tasksCompleted: 6, avatar: 'VS' },
-  { id: 'v5', name: 'Meera Joshi', skills: ['Medical', 'Teaching'], availability: ['Monday', 'Wednesday', 'Friday', 'Saturday'], location: 'Ward A - Riverside', hasTransport: false, tasksCompleted: 20, avatar: 'MJ' },
-  { id: 'v6', name: 'Arjun Nair', skills: ['Construction', 'Technology'], availability: ['Tuesday', 'Thursday'], location: 'Ward E - Greenfield', hasTransport: true, tasksCompleted: 10, avatar: 'AN' },
+  { id: 'v1', name: 'Priya Sharma', skills: ['Medical'], availability: ['Monday'], location: 'Patna', hasTransport: true, tasksCompleted: 12, avatar: 'PS', lat: 25.6100, lng: 85.1500 },
+  { id: 'v2', name: 'Rahul Patel', skills: ['Construction'], availability: ['Tuesday'], location: 'Mumbai', hasTransport: true, tasksCompleted: 8, avatar: 'RP', lat: 19.0800, lng: 72.8800 },
+  { id: 'v3', name: 'Aryan (Lead)', skills: ['Technology'], availability: ['Monday', 'Friday'], location: 'Mohali', hasTransport: true, tasksCompleted: 25, avatar: 'AR', lat: 30.7046, lng: 76.7179 },
 ];
 
 export const mockNGOs: NGO[] = [
-  { id: 'ngo1', name: 'HopeFoundation', areaCovered: 'Ward A - Riverside', focusArea: 'Food Security', logo: 'HF' },
-  { id: 'ngo2', name: 'HealthFirst', areaCovered: 'Ward C - Downtown', focusArea: 'Medical Aid', logo: 'H1' },
-  { id: 'ngo3', name: 'EduRise', areaCovered: 'Ward B - Hilltop', focusArea: 'Education', logo: 'ER' },
-  { id: 'ngo4', name: 'BuildTogether', areaCovered: 'Ward D - Lakeview', focusArea: 'Infrastructure', logo: 'BT' },
+  { id: 'ngo1', name: 'Hope Foundation', areaCovered: 'Riverside', focusArea: 'Food Security', logo: 'HF' },
+  { id: 'ngo2', name: 'Health First', areaCovered: 'Downtown', focusArea: 'Medical Aid', logo: 'H1' },
 ];
 
 export const SKILL_TO_NEED: Record<string, string[]> = {
@@ -70,3 +113,20 @@ export const SKILL_TO_NEED: Record<string, string[]> = {
   'Infrastructure': ['Construction', 'Logistics'],
   'Other': ['Technology', 'Logistics'],
 };
+
+export const NGO_LANGS = [
+  { name: "English", code: "en" },
+  { name: "Hindi (हिंदी)", code: "hi" },
+  { name: "Bhojpuri (भोजपुरी)", code: "bho" },
+  { name: "Maithili (मैथिली)", code: "mai" },
+  { name: "Bengali (বাংলা)", code: "bn" },
+  { name: "Marathi (मराठी)", code: "mr" },
+  { name: "Spanish", code: "es" },
+  { name: "French", code: "fr" }
+];
+
+export const liveEmergencies = [
+  { id: "e1", place: "Patna, Bihar", issue: "Urgent Blood Donor (O-) required at City Hospital" },
+  { id: "e2", place: "Mohali, Sector 62", issue: "Emergency food rations needed for 50 families" },
+  { id: "e3", place: "Mumbai West", issue: "Medical team requested for local health camp" }
+];
