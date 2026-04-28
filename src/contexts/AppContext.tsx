@@ -3,6 +3,8 @@ import { NeedReport, Volunteer, NGO, mockNeeds, mockVolunteers, mockNGOs } from 
 import { toast } from 'sonner';
 
 export type LanguageCode = 'en' | 'hi' | 'bn' | 'bho' | 'mai' | 'mr' | 'es' | 'fr';
+// --- NEW: THEME TYPE DEFINITION ---
+export type ThemeCode = 'onyx' | 'midnight' | 'matrix' | 'crimson' | 'cobalt' | 'amber' | 'violet';
 
 /**
  * ELITE APP STATE INTERFACE
@@ -16,14 +18,15 @@ interface AppState {
   isOnline: boolean;
   syncingCount: number;
   language: LanguageCode;
-  theme: 'light' | 'dark';
+  theme: ThemeCode; // Updated to support 7 themes
   voiceAgent: {
     enabled: boolean;
     voiceIndex: number;
     rate: number;
     pitch: number;
   };
-  toggleTheme: () => void;
+  toggleTheme: () => void; // Preserved for backward compatibility
+  changeTheme: (theme: ThemeCode) => void; // NEW: Multi-theme controller
   updateVoiceConfig: (config: Partial<AppState['voiceAgent']>) => void;
   changeLanguage: (lang: LanguageCode) => void;
   addNeed: (need: Omit<NeedReport, 'id' | 'createdAt' | 'status' | 'otp'>) => void;
@@ -62,8 +65,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isOnline, setIsOnline] = useState(true);
   const [syncingCount, setSyncingCount] = useState(0);
   
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => 
-    (localStorage.getItem('cb-theme-pref') as 'light' | 'dark') || 'light'
+  // Updated initial theme logic to support 7 themes
+  const [theme, setTheme] = useState<ThemeCode>(() => 
+    (localStorage.getItem('cb-theme-pref') as ThemeCode) || 'onyx'
   );
 
   const [language, setLanguage] = useState<LanguageCode>(() => {
@@ -77,14 +81,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     pitch: 1.0
   });
 
-  // --- 3. AUTO-SAVE & SYSTEM SYNC ---
+  // --- 3. AUTO-SAVE & SYSTEM SYNC (ZENITH MULTI-THEME HANDSHAKE) ---
   useEffect(() => {
     localStorage.setItem('community-bridge-needs', JSON.stringify(needs));
     localStorage.setItem('cb-theme-pref', theme);
-    document.documentElement.classList.toggle('dark', theme === 'dark');
+    
+    // Injects the theme ID into the data-attribute for index.css logic
+    document.documentElement.setAttribute('data-theme', theme);
+    
+    // Maintain Tailwind's .dark class for components using dark: prefix (Onyx is light)
+    if (theme === 'onyx') {
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.classList.add('dark');
+    }
   }, [needs, theme]);
 
-  const toggleTheme = useCallback(() => setTheme(prev => prev === 'light' ? 'dark' : 'light'), []);
+  // NEW: PEAK MULTI-THEME CONTROLLER
+  const changeTheme = useCallback((newTheme: ThemeCode) => {
+    setTheme(newTheme);
+    const themeNames: Record<ThemeCode, string> = {
+      onyx: 'Onyx Ops', midnight: 'Stealth Grid', matrix: 'Tech Intel',
+      crimson: 'High Alert', cobalt: 'Oceanic', amber: 'Industrial', violet: 'Neural Core'
+    };
+    toast.success(`Activating Profile: ${themeNames[newTheme]}`);
+  }, []);
+
+  // Preserved toggleTheme (mapped to main dark/light variants)
+  const toggleTheme = useCallback(() => setTheme(prev => prev === 'onyx' ? 'midnight' : 'onyx'), []);
   
   const updateVoiceConfig = useCallback((config: Partial<typeof voiceAgent>) => {
     setVoiceAgent(prev => ({ ...prev, ...config }));
@@ -100,9 +124,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     toast.success(`Switching to ${langNames[lang] || lang.toUpperCase()}`);
   }, []);
 
-  // --- 4. TACTICAL ACTION LOGIC ---
+  // --- 4. TACTICAL ACTION LOGIC (STRICT PRESERVATION) ---
   
-  // ADD NEED (With OTP Generation & GPS tagging)
   const addNeed = useCallback((need: Omit<NeedReport, 'id' | 'createdAt' | 'status' | 'otp'>) => {
     const generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
     const newNeed: NeedReport = {
@@ -115,22 +138,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       lat: (need as any).lat || 20.5937 + (Math.random() - 0.5) * 5,
       lng: (need as any).lng || 78.9629 + (Math.random() - 0.5) * 5,
     };
-
     setNeeds(prev => [newNeed, ...prev]);
-    
     if (!isOnline) {
-      toast.warning("Field Node: Offline Mode", {
-        description: `Stored locally. Verification OTP is: ${generatedOtp}`
-      });
+      toast.warning("Field Node: Offline Mode", { description: `Stored locally. Verification OTP is: ${generatedOtp}` });
     } else {
-      toast.success("Tactical Report Uplinked", {
-        description: `Verification OTP: ${generatedOtp}. Share this only when help arrives.`,
-        duration: 12000,
-      });
+      toast.success("Tactical Report Uplinked", { description: `Verification OTP: ${generatedOtp}. Share this only when help arrives.`, duration: 12000 });
     }
   }, [isOnline]);
 
-  // SYNC ENGINE
   const toggleOnline = useCallback(() => {
     setIsOnline(prev => {
       const becomingOnline = !prev;
@@ -138,9 +153,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const pending = needs.filter(n => n.syncStatus === 'pending');
         if (pending.length > 0) {
           setSyncingCount(pending.length);
-          toast.promise(
-            new Promise((resolve) => setTimeout(resolve, 2000)),
-            {
+          toast.promise(new Promise((resolve) => setTimeout(resolve, 2000)), {
               loading: `Syncing ${pending.length} reports to National Hub...`,
               success: () => {
                 setNeeds(current => current.map(n => ({ ...n, syncStatus: 'synced' })));
@@ -156,7 +169,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   }, [needs]);
 
-  // VOLUNTEER MANAGEMENT (Initials + Proximity Prep)
   const addVolunteer = useCallback((vol: Omit<Volunteer, 'id' | 'tasksCompleted' | 'avatar'>) => {
     const initials = vol.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     const newVol: Volunteer = { 
@@ -180,7 +192,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setNeeds(prev => prev.map(n => n.id === needId ? { ...n, acceptedBy: ngoName, status: 'assigned' } : n));
   }, []);
 
-  // OTP RESOLUTION SYSTEM (The Secure Handshake)
   const resolveNeed = useCallback((needId: string, enteredOtp: string) => {
     const target = needs.find(n => n.id === needId);
     if (target?.otp === enteredOtp) {
@@ -188,16 +199,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       toast.success("Identity Verified. Mission Success: Report Resolved.");
       return true;
     }
-    toast.error("Security Authentication Failed", {
-      description: "The OTP entered does not match the requester's secret key."
-    });
+    toast.error("Security Authentication Failed", { description: "The OTP entered does not match the requester's secret key." });
     return false;
   }, [needs]);
 
   return (
     <AppContext.Provider value={{ 
       needs, volunteers, ngos, isOnline, syncingCount, language, theme, voiceAgent,
-      toggleTheme, updateVoiceConfig, changeLanguage, addNeed, addVolunteer, addNGO, toggleOnline, acceptNeed, resolveNeed 
+      toggleTheme, changeTheme, updateVoiceConfig, changeLanguage, addNeed, addVolunteer, addNGO, toggleOnline, acceptNeed, resolveNeed 
     }}>
       {children}
     </AppContext.Provider>

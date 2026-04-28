@@ -1,153 +1,31 @@
-/* 1. CONSOLIDATED EXTERNAL ASSETS */
-/* Only one @import is allowed, and it MUST be at the very top */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
-
-/* 2. TAILWIND CORE DIRECTIVES */
+/* 1. DIRECTIVES FIRST */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 3. SYSTEM VARIABLES & THEMES */
+/* 2. THEME IMPORTS SECOND */
+@import './space-theme.css'; 
+
+/* 3. CUSTOM LAYERS THIRD */
 @layer base {
-  :root {
-    /* --- LIGHT MODE CORE --- */
+  /* YOUR 7 TACTICAL ACCENTS */
+  :root, [data-theme="onyx"] {
+    --primary: 221 83% 53%;
     --background: 210 20% 98%;
     --foreground: 215 25% 15%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
-
-    --primary: 217 90% 50%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 174 85% 34%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 210 20% 95%;
-    --muted-foreground: 215 15% 47%;
-
-    --accent: 174 85% 34%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 214 20% 90%;
-    --input: 214 20% 90%;
-    --ring: 217 90% 50%;
-
-    --radius: 0.75rem;
-
-    /* --- TACTICAL HELPERS --- */
-    --urgency-critical: 0 84% 60%;
-    --urgency-moderate: 38 92% 50%;
-    --urgency-low: 142 71% 45%;
-    --online: 142 71% 45%;
-    --offline: 0 84% 60%;
-    --pending: 38 92% 50%;
-    --synced: 142 71% 45%;
+    /* ... rest of onyx vars */
   }
 
-  .dark {
-    /* --- DARK MODE TACTICAL --- */
-    --background: 222 47% 4%;
-    --foreground: 210 40% 98%;
-
-    --card: 222 47% 6%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222 47% 4%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 11%;
-
-    --secondary: 174 85% 45%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217 32% 17%;
-    --muted-foreground: 215 20% 65%;
-
-    --accent: 174 85% 45%;
-    --accent-foreground: 210 40% 98%;
-
-    --border: 217 32% 17%;
-    --input: 217 32% 17%;
-    --ring: 217 91% 60%;
-  }
+  [data-theme="midnight"] { --primary: 217 91% 60%; }
+  [data-theme="matrix"]   { --primary: 142 71% 45%; }
+  [data-theme="crimson"]  { --primary: 0 84% 60%;   }
+  [data-theme="cobalt"]   { --primary: 199 89% 48%; }
+  [data-theme="amber"]    { --primary: 38 92% 50%;  }
+  [data-theme="violet"]   { --primary: 262 83% 58%; }
 }
 
-/* 4. BASE STYLES & RADAR PATTERN */
 @layer base {
-  * {
-    @apply border-border;
-  }
-
   body {
-    @apply bg-background text-foreground antialiased transition-colors duration-500;
-    font-family: 'Inter', system-ui, sans-serif;
-    /* National Grid Radial Pattern */
-    background-image: radial-gradient(circle at center, hsla(215, 25%, 15%, 0.03) 1px, transparent 1px);
-    background-size: 32px 32px;
-  }
-
-  .dark body {
-    background-image: radial-gradient(circle at center, hsla(210, 40%, 98%, 0.03) 1px, transparent 1px);
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
-    @apply tracking-tight font-bold italic uppercase;
-  }
-}
-
-/* 5. ELITE TACTICAL UTILITIES */
-@layer utilities {
-  .gradient-primary {
-    background: linear-gradient(135deg, hsl(217 90% 50%), hsl(174 85% 34%));
-  }
-
-  .text-gradient {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(217 90% 50%), hsl(174 85% 34%));
-  }
-
-  .glass-panel {
-    @apply backdrop-blur-xl border shadow-2xl transition-all duration-500;
-    background: rgba(255, 255, 255, 0.7);
-    border-color: rgba(255, 255, 255, 0.2);
-  }
-
-  .dark .glass-panel {
-    background: rgba(2, 6, 23, 0.7);
-    border-color: rgba(255, 255, 255, 0.05);
-  }
-
-  .text-synced { color: hsl(var(--synced)); }
-  .text-pending { color: hsl(var(--pending)); }
-  .bg-online { background-color: hsl(var(--online)); }
-  .bg-offline { background-color: hsl(var(--offline)); }
-
-  .utility-card {
-    @apply transition-all duration-500 border-none shadow-sm hover:shadow-2xl hover:-translate-y-2;
-  }
-
-  .shadow-card {
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-  }
-
-  .scrollbar-hide::-webkit-scrollbar { display: none; }
-  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
-  .animate-spin-slow {
-    animation: spin 10s linear infinite;
-  }
-
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    @apply bg-background text-foreground transition-colors duration-500;
   }
 }

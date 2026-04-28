@@ -10,11 +10,16 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { SKILLS, DAYS, WARDS } from '@/lib/mockData';
-import { Plus, Trophy, MapPin, Car, Calendar, UserPlus, Star, ChevronRight, ShieldCheck, Activity, Target } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Trophy, MapPin, Car, Calendar, UserPlus, Star, ChevronRight, ShieldCheck, Activity, Target, Zap, Cpu, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { T } from '@/components/T'; 
 
+/**
+ * NATIONAL GRID: RESPONSE AGENT DIRECTORY (ZENITH V4.0)
+ * Features: Staggered Neural Loading, Spring Physics, and Biometric Aesthetics.
+ */
 export default function Volunteers() {
   const { volunteers, addVolunteer, theme } = useApp();
   const [showForm, setShowForm] = useState(false);
@@ -26,22 +31,35 @@ export default function Volunteers() {
 
   const leaderboard = [...volunteers].sort((a, b) => b.tasksCompleted - a.tasksCompleted);
 
+  // --- STAGGER ANIMATION VARIANTS ---
+  const containerVars = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1, 
+      transition: { staggerChildren: 0.05, delayChildren: 0.1 } 
+    }
+  };
+
+  const itemVars = {
+    hidden: { y: 20, opacity: 0, scale: 0.95 },
+    visible: { 
+      y: 0, opacity: 1, scale: 1,
+      transition: { type: "spring", stiffness: 120, damping: 14 } 
+    }
+  };
+
   const handleSubmit = () => {
     if (!name || !location || skills.length === 0) {
-      toast.error("Protocol Error", { description: "Agent credentials incomplete." });
+      toast.error(<T>Protocol Error</T>, { description: <T>Agent credentials incomplete.</T> });
       return;
     }
     
-    addVolunteer({ 
-      name, 
-      skills, 
-      availability: avail, 
-      location, 
-      hasTransport,
-      tasksCompleted: 0,
-    });
+    addVolunteer({ name, skills, availability: avail, location, hasTransport, tasksCompleted: 0 });
 
-    toast.success("Agent Enlisted", { description: `${name} integrated into National Grid.` });
+    toast.success(<T>Agent Enlisted</T>, { 
+        description: <T>{name} integrated into National Grid.</T>,
+        icon: <Zap className="h-4 w-4 text-emerald-400" />
+    });
     setShowForm(false);
     setName(''); setSkills([]); setAvail([]); setLocation(''); setHasTransport(false);
   };
@@ -51,130 +69,142 @@ export default function Volunteers() {
 
   return (
     <div className={cn(
-      "space-y-10 pb-12 transition-colors duration-500",
-      theme === 'dark' ? "text-white" : "text-slate-900"
+      "space-y-12 pb-16 transition-all duration-1000",
+      theme === 'dark' ? "bg-[#020617] text-white" : "bg-slate-50 text-slate-900"
     )}>
       
       {/* 1. TACTICAL HEADER */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <motion.div 
+        initial={{ opacity: 0, x: -30 }} 
+        animate={{ opacity: 1, x: 0 }}
+        className="flex flex-col md:flex-row md:items-end justify-between gap-8"
+      >
         <div>
-          <h1 className="text-4xl font-black tracking-tighter uppercase italic leading-none">Response Agents</h1>
-          <p className="text-[11px] font-black text-primary uppercase tracking-[0.3em] mt-3 flex items-center gap-2">
-            <Activity className="h-4 w-4 animate-pulse" /> National Volunteer Telemetry Directory
+          <h1 className="text-5xl font-black tracking-tighter uppercase italic leading-none bg-gradient-to-r from-primary via-blue-400 to-emerald-400 bg-clip-text text-transparent">
+            <T>Response Agents</T>
+          </h1>
+          <p className="text-[11px] font-black text-emerald-400 uppercase tracking-[0.4em] mt-4 flex items-center gap-3">
+            <Activity className="h-4 w-4 animate-pulse" /> <T>National Volunteer Telemetry Directory</T>
           </p>
         </div>
-        <Button 
-          onClick={() => setShowForm(!showForm)} 
-          className={cn(
-            "h-14 px-8 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl active:scale-95",
-            showForm ? "bg-slate-800 text-white" : "bg-primary text-white shadow-primary/20 hover:bg-slate-900"
-          )}
-        >
-          {showForm ? <Plus className="h-5 w-5 mr-3 rotate-45 transition-transform" /> : <UserPlus className="h-5 w-5 mr-3" />}
-          {showForm ? 'Abort Entry' : 'Enlist Agent'}
-        </Button>
-      </div>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button 
+            onClick={() => setShowForm(!showForm)} 
+            className={cn(
+              "h-16 px-10 rounded-[1.2rem] font-black uppercase tracking-widest transition-all shadow-3xl active:scale-95 border-none",
+              showForm ? "bg-slate-800 text-white" : "bg-primary text-white shadow-primary/30"
+            )}
+          >
+            {showForm ? <Plus className="h-5 w-5 mr-3 rotate-45 transition-transform" /> : <UserPlus className="h-5 w-5 mr-3" />}
+            <T>{showForm ? 'Abort Entry' : 'Enlist Agent'}</T>
+          </Button>
+        </motion.div>
+      </motion.div>
 
-      {/* 2. ENLISTMENT FORM (Zero Trimming - Preserved Logic) */}
-      <AnimatePresence>
+      {/* 2. ENLISTMENT FORM (Glassmorphic) */}
+      <AnimatePresence mode="wait">
         {showForm && (
           <motion.div 
-            initial={{ opacity: 0, y: -20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            exit={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, height: 0, scale: 0.9, filter: "blur(20px)" }} 
+            animate={{ opacity: 1, height: 'auto', scale: 1, filter: "blur(0px)" }} 
+            exit={{ opacity: 0, height: 0, scale: 0.9, filter: "blur(20px)" }}
+            transition={{ type: "spring", stiffness: 100, damping: 15 }}
             className="overflow-hidden"
           >
             <Card className={cn(
-              "border-none shadow-2xl rounded-[2.5rem] overflow-hidden",
-              theme === 'dark' ? "bg-slate-900" : "bg-white"
+              "border-none shadow-6xl rounded-[4rem] overflow-hidden mb-12 relative border-t border-white/10",
+              theme === 'dark' ? "bg-slate-900/60 backdrop-blur-3xl" : "bg-white"
             )}>
-              <CardHeader className="p-8 border-b border-white/5 bg-primary/5">
-                <CardTitle className="text-xs font-black uppercase tracking-[0.4em] flex items-center gap-3 text-primary">
-                  <ShieldCheck className="h-5 w-5" /> Agent Onboarding Protocol
+              {/* Scanline Effect */}
+              <motion.div 
+                animate={{ y: ["0%", "100%", "0%"] }} 
+                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-500/5 to-transparent h-40 w-full pointer-events-none"
+              />
+
+              <CardHeader className="p-12 border-b border-white/5 bg-emerald-500/5">
+                <CardTitle className="text-[15px] font-black uppercase tracking-[0.4em] flex items-center gap-5 text-emerald-400">
+                  <ShieldCheck className="h-7 w-7" /> <T>Agent Onboarding Protocol</T>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-8 space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Legal Identity</Label>
+              <CardContent className="p-12 space-y-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                  <div className="space-y-4">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500"><T>Legal Identity</T></Label>
                     <Input 
-                      value={name} 
-                      onChange={e => setName(e.target.value)} 
-                      placeholder="Agent Full Name" 
-                      className={cn(
-                        "h-14 rounded-2xl border-none font-bold text-xs px-5 shadow-inner",
-                        theme === 'dark' ? "bg-slate-800 text-white" : "bg-slate-50"
-                      )} 
+                      value={name} onChange={e => setName(e.target.value)} placeholder="Agent Full Name" 
+                      className={cn("h-16 rounded-[1.5rem] border-none font-bold text-sm px-6 shadow-inner transition-all", theme === 'dark' ? "bg-slate-950 text-white focus:ring-2 focus:ring-emerald-500/20" : "bg-slate-50")} 
                     />
                   </div>
-                  <div className="space-y-3">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Home Sector Node</Label>
+                  <div className="space-y-4">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500"><T>Home Sector Node</T></Label>
                     <Select value={location} onValueChange={setLocation}>
-                      <SelectTrigger className={cn(
-                        "h-14 rounded-2xl border-none font-black text-[10px] uppercase px-5 shadow-inner",
-                        theme === 'dark' ? "bg-slate-800 text-white" : "bg-slate-50"
-                      )}>
+                      <SelectTrigger className={cn("h-16 rounded-[1.5rem] border-none font-black text-[11px] uppercase px-6 shadow-inner", theme === 'dark' ? "bg-slate-950 text-white" : "bg-slate-50")}>
                         <SelectValue placeholder="Select Grid Node" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-2xl">{WARDS.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}</SelectContent>
+                      <SelectContent className="rounded-3xl border-none shadow-6xl backdrop-blur-3xl">
+                        {WARDS.map(w => <SelectItem key={w} value={w} className="font-bold py-4 focus:bg-emerald-500/10"><T>{w}</T></SelectItem>)}
+                      </SelectContent>
                     </Select>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Certified Specializations</Label>
-                  <div className="flex flex-wrap gap-3">
+                <div className="space-y-6">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500"><T>Certified Specializations</T></Label>
+                  <div className="flex flex-wrap gap-4">
                     {SKILLS.map(s => (
-                      <button
-                        key={s}
+                      <motion.button
+                        key={s} whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }}
                         onClick={() => toggleSkill(s)}
                         className={cn(
-                          "px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border shadow-sm",
+                          "px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all border shadow-sm",
                           skills.includes(s) 
-                            ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' 
-                            : theme === 'dark' ? 'bg-slate-800 text-slate-500 border-slate-700 hover:border-primary/50' : 'bg-white text-slate-600 border-slate-100 hover:border-primary/50'
+                            ? 'bg-emerald-500 text-slate-950 border-emerald-500 shadow-xl shadow-emerald-500/30' 
+                            : theme === 'dark' ? 'bg-slate-800 text-slate-500 border-slate-700' : 'bg-white text-slate-600'
                         )}
                       >
-                        {s}
-                      </button>
+                        <T>{s}</T>
+                      </motion.button>
                     ))}
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Operational Windows (Weekly)</Label>
-                  <div className="flex flex-wrap gap-3">
+                <div className="space-y-6">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500"><T>Operational Windows (Weekly)</T></Label>
+                  <div className="flex flex-wrap gap-4">
                     {DAYS.map(d => (
-                      <button
-                        key={d}
+                      <motion.button
+                        key={d} whileHover={{ scale: 1.1 }}
                         onClick={() => toggleDay(d)}
                         className={cn(
-                          "w-14 h-14 rounded-2xl flex items-center justify-center text-[10px] font-black transition-all border shadow-sm",
+                          "w-16 h-16 rounded-[1.2rem] flex items-center justify-center text-[11px] font-black transition-all border shadow-sm",
                           avail.includes(d) 
-                            ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20' 
-                            : theme === 'dark' ? 'bg-slate-800 text-slate-500 border-slate-700' : 'bg-white text-slate-400 border-slate-100 hover:border-emerald-500/30'
+                            ? 'bg-primary text-white border-primary shadow-xl shadow-primary/30' 
+                            : theme === 'dark' ? 'bg-slate-800 text-slate-500 border-slate-700' : 'bg-white text-slate-400'
                         )}
                       >
-                        {d.slice(0, 3).toUpperCase()}
-                      </button>
+                        <T>{d.slice(0, 3).toUpperCase()}</T>
+                      </motion.button>
                     ))}
                   </div>
                 </div>
 
                 <div className={cn(
-                    "flex flex-col md:flex-row items-center justify-between p-8 rounded-[2rem] border transition-all",
-                    theme === 'dark' ? "bg-slate-800/50 border-slate-700" : "bg-slate-50 border-slate-100"
+                    "flex flex-col md:flex-row items-center justify-between p-10 rounded-[3rem] border-2 transition-all",
+                    theme === 'dark' ? "bg-slate-950/50 border-emerald-500/20" : "bg-slate-50 border-slate-100"
                 )}>
-                  <div className="flex items-center gap-5 mb-4 md:mb-0">
-                    <Switch checked={hasTransport} onCheckedChange={setHasTransport} className="data-[state=checked]:bg-primary" />
+                  <div className="flex items-center gap-8 mb-8 md:mb-0">
+                    <Switch checked={hasTransport} onCheckedChange={setHasTransport} className="scale-125 data-[state=checked]:bg-emerald-500" />
                     <div>
-                      <p className="text-sm font-black uppercase tracking-tight">Mobility Access</p>
-                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Available for logistics & transport missions</p>
+                      <p className="text-lg font-black uppercase tracking-tight"><T>Mobility Access</T></p>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-1 opacity-60"><T>Available for logistics & transport missions</T></p>
                     </div>
                   </div>
-                  <Button onClick={handleSubmit} className="h-14 px-10 bg-primary text-white font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-primary/20 hover:bg-slate-950 active:scale-95 transition-all">
-                    Register Tactical Node
-                  </Button>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button onClick={handleSubmit} className="h-16 px-14 bg-emerald-500 text-slate-950 font-black uppercase tracking-[0.2em] rounded-[1.5rem] shadow-3xl shadow-emerald-500/40 border-none">
+                      <T>Register Tactical Node</T>
+                    </Button>
+                  </motion.div>
                 </div>
               </CardContent>
             </Card>
@@ -182,113 +212,126 @@ export default function Volunteers() {
         )}
       </AnimatePresence>
 
-      <Tabs defaultValue="directory" className="w-full">
-        <TabsList className={cn(
-          "p-1.5 rounded-2xl h-14 mb-8",
-          theme === 'dark' ? "bg-slate-900" : "bg-slate-100/50"
-        )}>
-          <TabsTrigger value="directory" className="px-10 rounded-xl font-black text-[10px] uppercase tracking-widest">Active Directory</TabsTrigger>
-          <TabsTrigger value="leaderboard" className="px-10 rounded-xl font-black text-[10px] uppercase tracking-widest">Impact Ranking</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="directory" className="mt-0 outline-none">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {volunteers.map((v, i) => (
-              <motion.div key={v.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}>
-                <Card className={cn(
-                  "border-none shadow-xl rounded-[2.5rem] overflow-hidden group hover:scale-[1.02] transition-all duration-300",
-                  theme === 'dark' ? "bg-slate-900" : "bg-white"
-                )}>
-                  <CardContent className="p-8 space-y-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-5">
-                        <Avatar className="h-16 w-16 border-4 border-white dark:border-slate-800 shadow-2xl ring-2 ring-primary/20">
-                          <AvatarFallback className="bg-primary text-white font-black italic text-lg">{v.avatar}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className={cn("font-black uppercase tracking-tight text-lg leading-none", theme === 'dark' ? "text-white" : "text-slate-900")}>{v.name}</p>
-                          <p className="text-[10px] font-black text-slate-400 flex items-center gap-2 mt-2 uppercase tracking-widest">
-                            <MapPin className="h-3.5 w-3.5 text-primary" /> {v.location}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge className="bg-primary/10 text-primary border-none text-[9px] font-black px-3 py-1 uppercase tracking-widest italic">{v.tasksCompleted} Missions</Badge>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      {v.skills.map(s => (
-                        <span key={s} className="px-3 py-1 bg-primary/5 text-primary border border-primary/10 rounded-lg text-[9px] font-black uppercase tracking-widest">
-                          {s}
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className={cn(
-                        "flex items-center justify-between text-[9px] font-black uppercase tracking-widest border-t pt-6",
-                        theme === 'dark' ? "border-slate-800" : "border-slate-50"
-                    )}>
-                      <span className="flex items-center gap-2 text-slate-400 italic">
-                        <Calendar className="h-4 w-4 text-primary" /> {v.availability.length} Operational Nodes
-                      </span>
-                      {v.hasTransport && (
-                        <span className="flex items-center gap-2 text-emerald-500">
-                          <Car className="h-4 w-4" /> Mobility Link
-                        </span>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="leaderboard" className="mt-0 outline-none">
-          <Card className={cn(
-            "border-none shadow-2xl rounded-[3rem] overflow-hidden",
-            theme === 'dark' ? "bg-slate-900" : "bg-white"
+      <LayoutGroup>
+        <Tabs defaultValue="directory" className="w-full">
+          <TabsList className={cn(
+            "p-2 rounded-[1.8rem] h-16 mb-12",
+            theme === 'dark' ? "bg-slate-900/60" : "bg-slate-100"
           )}>
-            <CardContent className="p-8 space-y-4">
-              {leaderboard.map((v, i) => (
-                <motion.div 
-                  key={v.id} 
-                  initial={{ opacity: 0, x: -20 }} 
-                  animate={{ opacity: 1, x: 0 }} 
-                  transition={{ delay: i * 0.05 }}
-                  className={cn(
-                    "flex items-center gap-6 p-6 rounded-[2rem] border transition-all group",
-                    theme === 'dark' ? "bg-slate-800/30 border-slate-800 hover:bg-slate-800" : "bg-slate-50 border-transparent hover:bg-white hover:shadow-xl hover:border-slate-100"
-                  )}
-                >
-                  <div className="font-black text-4xl w-16 text-center italic opacity-10 group-hover:opacity-100 group-hover:text-primary transition-all">
-                    {String(i + 1).padStart(2, '0')}
-                  </div>
-                  <Avatar className="h-12 w-12 shadow-lg ring-2 ring-white dark:ring-slate-700">
-                    <AvatarFallback className="bg-primary text-white text-sm font-black italic">{v.avatar}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className={cn("font-black uppercase tracking-tight text-sm flex items-center gap-3", theme === 'dark' ? "text-white" : "text-slate-900")}>
-                      {v.name}
-                      {i < 3 && <Star className="h-4 w-4 fill-amber-400 text-amber-400 animate-pulse" />}
-                    </p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{v.location}</p>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <div className="flex items-center gap-3 text-primary">
-                      <Trophy className="h-5 w-5" />
-                      <span className="font-black text-3xl tracking-tighter italic leading-none">{v.tasksCompleted}</span>
-                    </div>
-                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] mt-1">Impact Analytics</p>
-                  </div>
-                  <div className="hidden sm:flex h-10 w-10 rounded-full items-center justify-center bg-white/5 border border-white/5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <ChevronRight className="h-5 w-5 text-slate-400" />
-                  </div>
+            <TabsTrigger value="directory" className="px-12 rounded-2xl font-black text-[11px] uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white"><T>Active Directory</T></TabsTrigger>
+            <TabsTrigger value="leaderboard" className="px-12 rounded-2xl font-black text-[11px] uppercase tracking-widest data-[state=active]:bg-amber-500 data-[state=active]:text-slate-950"><T>Impact Ranking</T></TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="directory" className="mt-0 outline-none">
+            <motion.div 
+              variants={containerVars} initial="hidden" animate="visible"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"
+            >
+              {volunteers.map((v) => (
+                <motion.div key={v.id} variants={itemVars} whileHover={{ y: -10 }}>
+                  <Card className={cn(
+                    "border-none shadow-5xl rounded-[3.8rem] overflow-hidden group transition-all duration-500",
+                    theme === 'dark' ? "bg-slate-900/40 hover:bg-slate-900 border border-white/5" : "bg-white hover:shadow-primary/10"
+                  )}>
+                    <CardContent className="p-10 space-y-9">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-7">
+                          <Avatar className="h-20 w-20 border-[6px] border-white dark:border-slate-800 shadow-4xl ring-2 ring-primary/20 group-hover:rotate-12 transition-transform duration-500">
+                            <AvatarFallback className="bg-gradient-to-br from-primary to-blue-800 text-white font-black italic text-2xl">{v.avatar}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className={cn("font-black uppercase tracking-tight text-xl leading-none")}>
+                              <T>{v.name}</T>
+                            </p>
+                            <div className="text-[10px] font-black text-slate-500 flex items-center gap-2.5 mt-3 uppercase tracking-widest opacity-60">
+                              <MapPin className="h-4 w-4 text-primary" /> <T>{v.location}</T>
+                            </div>
+                          </div>
+                        </div>
+                        <Badge className="bg-primary/20 text-primary border border-primary/20 text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest italic shadow-xl shadow-primary/10">
+                          <T>{v.tasksCompleted}</T> <T>Missions</T>
+                        </Badge>
+                      </div>
+
+                      <div className="flex flex-wrap gap-3">
+                        {v.skills.map(s => (
+                          <span key={s} className="px-4 py-2 bg-primary/5 text-primary border border-primary/10 rounded-xl text-[10px] font-black uppercase tracking-widest group-hover:bg-primary/10 transition-colors">
+                            <T>{s}</T>
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className={cn(
+                          "flex items-center justify-between text-[10px] font-black uppercase tracking-widest border-t border-white/5 pt-8",
+                          theme === 'dark' ? "text-slate-400" : "text-slate-500"
+                      )}>
+                        <span className="flex items-center gap-3 italic">
+                          <Calendar className="h-5 w-5 text-emerald-400" /> <T>{v.availability.length}</T> <T>Operational Nodes</T>
+                        </span>
+                        {v.hasTransport && (
+                          <span className="flex items-center gap-3 text-emerald-400 bg-emerald-500/5 px-4 py-2 rounded-lg">
+                            <Car className="h-5 w-5 animate-bounce" /> <T>Mobility Link</T>
+                          </span>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                 </motion.div>
               ))}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </motion.div>
+          </TabsContent>
+
+          <TabsContent value="leaderboard" className="mt-0 outline-none">
+            <Card className={cn(
+              "border-none shadow-6xl rounded-[4rem] overflow-hidden border-t border-white/5",
+              theme === 'dark' ? "bg-slate-900/40 backdrop-blur-2xl" : "bg-white"
+            )}>
+              <CardContent className="p-12 space-y-8">
+                {leaderboard.map((v, i) => (
+                  <motion.div 
+                    key={v.id} variants={itemVars} initial="hidden" animate="visible" transition={{ delay: i * 0.05 }}
+                    className={cn(
+                      "flex items-center gap-10 p-8 rounded-[3rem] border transition-all group relative overflow-hidden",
+                      theme === 'dark' ? "bg-slate-950/50 border-white/5 hover:bg-primary/10" : "bg-slate-50 border-transparent hover:bg-white hover:shadow-6xl"
+                    )}
+                  >
+                    <div className="font-black text-6xl w-28 text-center italic opacity-5 group-hover:opacity-100 group-hover:text-primary transition-all duration-700">
+                      <T>{String(i + 1).padStart(2, '0')}</T>
+                    </div>
+                    <Avatar className="h-16 w-16 shadow-2xl border-4 border-white dark:border-slate-700 group-hover:scale-110 transition-transform">
+                      <AvatarFallback className="bg-primary text-white text-lg font-black italic">{v.avatar}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className={cn("font-black uppercase tracking-tight text-2xl flex items-center gap-5")}>
+                        <T>{v.name}</T>
+                        {i < 3 && (
+                          <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 2 }}>
+                            <Star className="h-6 w-6 fill-amber-400 text-amber-400" />
+                          </motion.div>
+                        )}
+                      </div>
+                      <p className="text-[12px] font-bold text-slate-500 uppercase tracking-widest mt-2 opacity-60"><T>{v.location}</T></p>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <div className="flex items-center gap-5 text-emerald-400">
+                        <Trophy className="h-8 w-8" />
+                        <span className="font-black text-5xl tracking-tighter italic leading-none"><T>{v.tasksCompleted}</T></span>
+                      </div>
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-3 opacity-50"><T>Impact Analytics</T></p>
+                    </div>
+                  </motion.div>
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </LayoutGroup>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .shadow-6xl { box-shadow: 0 50px 100px -25px rgba(0,0,0,0.85); }
+        .shadow-5xl { box-shadow: 0 40px 80px -20px rgba(0,0,0,0.7); }
+        .shadow-4xl { box-shadow: 0 20px 60px -10px rgba(0,0,0,0.6); }
+      `}} />
     </div>
   );
 }

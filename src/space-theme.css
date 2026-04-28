@@ -1,0 +1,17 @@
+/* --- NATIONAL GRID: TOTAL BLACKOUT ENGINE --- */
+
+/* Use the .dark class on the root to override foundations */
+:root.dark {
+  --background: 240 10% 2% !important; 
+  --foreground: 210 40% 98% !important;
+  --card: 240 10% 4% !important;
+  --card-foreground: 210 40% 98% !important;
+  --border: 240 10% 12% !important;
+  --muted: 240 10% 10% !important;
+}
+
+/* Force background on the viewport */
+html.dark, body.dark {
+  background-color: hsl(240 10% 2%) !important;
+  color: hsl(210 40% 98%) !important;
+}

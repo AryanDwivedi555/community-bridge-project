@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react'; 
 import { useApp } from '@/contexts/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,32 +6,98 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { WARDS, NEED_TYPES, NGO_LANGS, liveEmergencies } from '@/lib/mockData';
 import { 
   AlertTriangle, MapPin, TrendingUp, CheckCircle, 
-  Globe, AlertCircle, Zap, ArrowRight, Activity, Shield, Radar 
+  Globe, AlertCircle, Zap, ArrowRight, Activity, Shield, Radar, MessageSquare, X, Cpu, Layers, Palette, Check
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'; 
 import { VolunteerMatchDialog } from '@/components/VolunteerMatchDialog';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import VerificationSystem from '@/components/VerificationSystem';
 import ManualAI from '@/components/ManualAI';
 import { cn } from '@/lib/utils';
 
-/**
- * NATIONAL GRID: INTELLIGENCE HUB DASHBOARD
- * Centralized Command & Control for National Mission Telemetry.
- * Integrated with Manual AI Instructor Hub.
- */
+// --- PEAK TACTICAL PROFILES ---
+const TACTICAL_PROFILES = [
+  { id: 'matrix', color: '#10b981', label: 'Matrix' },
+  { id: 'crimson', color: '#ef4444', label: 'Crimson' },
+  { id: 'cobalt', color: '#0ea5e9', label: 'Cobalt' },
+  { id: 'amber', color: '#f59e0b', label: 'Amber' },
+  { id: 'violet', color: '#8b5cf6', label: 'Violet' },
+];
+
+const translationCache: Record<string, string> = {};
+
+const translateNeuralStream = async (text: string, targetLang: string) => {
+  if (!text || targetLang === 'en' || /^[0-9\W]+$/.test(text)) return text;
+  const cacheKey = `${text}-${targetLang}`;
+  if (translationCache[cacheKey]) return translationCache[cacheKey];
+  try {
+    const res = await fetch(`https://lingva.ml/api/v1/en/${targetLang}/${encodeURIComponent(text)}`);
+    const data = await res.json();
+    const result = data.translation || text;
+    translationCache[cacheKey] = result;
+    return result;
+  } catch { return text; }
+};
+
+const localizeTelemetry = (val: number | string, lang: string) => {
+  const f = new Intl.NumberFormat(lang === 'mr' ? 'mr-IN' : lang === 'hi' ? 'hi-IN' : lang === 'bn' ? 'bn-IN' : 'en-US');
+  if (typeof val === 'number') return f.format(val);
+  return val.toString().replace(/\d/g, (d) => f.format(parseInt(d)));
+};
+
+const NeuralText = ({ text }: { text: string }) => {
+  const { language } = useApp() || { language: 'en' };
+  const [out, setOut] = useState(text);
+  useEffect(() => {
+    let active = true;
+    const process = async () => {
+      const translated = await translateNeuralStream(text, language);
+      if (active) setOut(translated);
+    };
+    process();
+    return () => { active = false; };
+  }, [text, language]);
+  return <>{out}</>;
+};
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.05 } }
+};
+
+const itemVariants = {
+  hidden: { y: 30, opacity: 0, scale: 0.98, filter: "blur(8px)" },
+  visible: { y: 0, opacity: 1, scale: 1, filter: "blur(0px)", transition: { type: 'spring', stiffness: 100, damping: 20, mass: 1 } }
+};
+
+const cardHover = { scale: 1.02, y: -5, transition: { type: "spring", stiffness: 400, damping: 25 } };
+
 export default function Dashboard() {
-  // --- SECURE UPLINK: CONTEXT ABSTRACTION ---
   const context = useApp();
-  
   if (!context) return null;
 
-  const { needs, language, changeLanguage, theme, volunteers = [] } = context;
+  const { needs, language, changeLanguage, theme, changeTheme } = context;
   const [filterWard, setFilterWard] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [matchNeedId, setMatchNeedId] = useState<string | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [translated, setTranslated] = useState<Record<string, string>>({});
+  
+  useEffect(() => {
+    const process = async () => {
+      if (language === 'en') { setTranslated({}); return; }
+      const keys = ["Strategic Operations", "National Grid Node-01 Tactical Feed", "Network Points", "Avg Urgency", "Resolved Missions", "Sector Coverage", "High-Priority Global Backlog", "Critical Hotspot", "System Recommendation", "Grid Stability", "Mission Grid Nodes", "Initialize Match", "Filter sectoral reports", "Tactical Alert", "Chat Intelligence", "resolved", "pending", "Tactical Skin"];
+      const results = await Promise.all(keys.map(k => translateNeuralStream(k, language)));
+      const map: Record<string, string> = {};
+      keys.forEach((k, i) => map[k] = results[i]);
+      setTranslated(map);
+    };
+    process();
+  }, [language]);
 
-  // --- 1. CORE FILTERING ENGINE (Preserved) ---
+  const t = (key: string) => translated[key] || key;
+  const n = (val: number | string) => localizeTelemetry(val, language);
+
   const filtered = useMemo(() => {
     return needs.filter(n => {
       if (filterWard !== 'all' && n.location !== filterWard) return false;
@@ -40,250 +106,205 @@ export default function Dashboard() {
     });
   }, [needs, filterWard, filterType]);
 
-  // --- 2. TACTICAL ANALYTICS (Preserved) ---
   const topUrgent = useMemo(() => [...needs].sort((a, b) => b.urgency - a.urgency).slice(0, 5), [needs]);
   const totalNeeds = needs.length;
   const avgUrgency = (needs.reduce((s, n) => s + n.urgency, 0) / (needs.length || 1)).toFixed(1);
   const resolved = needs.filter(n => n.status === 'resolved').length;
   const coverageCount = new Set(needs.map(n => n.location)).size;
-
-  const areaCounts = needs.reduce((acc, n) => { acc[n.location] = (acc[n.location] || 0) + 1; return acc; }, {} as Record<string, number>);
-  const mostAffected = Object.entries(areaCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
+  const mostAffected = Object.entries(needs.reduce((acc, n) => { acc[n.location] = (acc[n.location] || 0) + 1; return acc; }, {} as Record<string, number>)).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
 
   return (
-    <div className={cn(
-      "space-y-8 pb-12 animate-in fade-in duration-700 transition-colors duration-500",
-      theme === 'dark' ? "bg-slate-950 text-white" : "bg-slate-50/30"
-    )}>
-      
-      {/* 1. TACTICAL HEADER */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-             <div className="h-10 w-10 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
-                <Shield className="h-6 w-6 text-white" />
+    <motion.div 
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      // FIXED: Strictly White Background initially
+      className="space-y-12 pb-24 transition-all duration-1000 ease-in-out px-4 lg:px-0 bg-[#f8fafc] text-slate-900"
+    >
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-10">
+        <motion.div variants={itemVariants} className="relative group">
+          <div className="flex items-center gap-6">
+             <motion.div whileHover={{ rotate: 180, scale: 1.1 }} className="h-16 w-16 bg-gradient-to-tr from-primary via-blue-600 to-cyan-400 rounded-3xl flex items-center justify-center shadow-[0_0_40px_-10px_rgba(59,130,246,0.5)]">
+                <Shield className="h-9 w-9 text-white" />
+             </motion.div>
+             <div>
+               <h1 className="text-5xl font-black tracking-tighter uppercase italic leading-none bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">{t("Strategic Operations")}</h1>
+               <p className="text-[12px] text-slate-500 flex items-center gap-3 font-black uppercase tracking-[0.4em] mt-3 opacity-80">
+                 <Activity className="h-4 w-4 text-primary animate-pulse" /> {t("National Grid Node-01 Tactical Feed")}
+               </p>
              </div>
-             <h1 className={cn(
-               "text-3xl font-black tracking-tighter uppercase italic leading-none",
-               theme === 'dark' ? "text-white" : "text-slate-900"
-             )}>Intelligence Hub</h1>
           </div>
-          <p className="text-[11px] text-muted-foreground flex items-center gap-2 font-black uppercase tracking-[0.3em]">
-            <Activity className="h-3 w-3 text-primary animate-pulse" /> National Grid Node-01 Tactical Feed
-          </p>
-        </div>
+        </motion.div>
         
-        <div className={cn(
-          "flex items-center gap-3 px-4 py-2 border rounded-2xl shadow-xl transition-all",
-          theme === 'dark' ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"
-        )}>
-          <Globe className="h-4 w-4 text-primary" />
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-r pr-3">Language</span>
-          <select 
-            value={language}
-            onChange={(e) => changeLanguage(e.target.value as any)}
-            className="text-xs font-black bg-transparent border-none outline-none cursor-pointer text-primary focus:ring-0"
-          >
-            {NGO_LANGS.map(lang => (
-              <option key={lang.code} value={lang.code}>{lang.name}</option>
-            ))}
-          </select>
+        <div className="flex flex-wrap items-center gap-4">
+          {/* THEME SELECTION HUD */}
+          <motion.div variants={itemVariants} className="flex items-center gap-4 px-6 py-3 border border-slate-200 rounded-[2.5rem] shadow-xl bg-white backdrop-blur-xl transition-all">
+            <Palette className="h-4 w-4 text-primary" />
+            <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest border-r border-slate-200 pr-4">{t("Tactical Skin")}</span>
+            <div className="flex items-center gap-2">
+              {TACTICAL_PROFILES.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => changeTheme(p.id)}
+                  className={cn(
+                    "h-6 w-6 rounded-full transition-all border flex items-center justify-center relative",
+                    theme === p.id ? "border-primary scale-125 z-10 shadow-lg" : "border-transparent opacity-40 hover:opacity-100"
+                  )}
+                  style={{ backgroundColor: p.color }}
+                >
+                  {theme === p.id && <Check className={cn("h-3 w-3", p.id === 'onyx' ? "text-black" : "text-white")} />}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+
+          <motion.div variants={itemVariants} className="flex items-center gap-4 px-8 py-4 border border-slate-200 rounded-[2.5rem] shadow-xl bg-white backdrop-blur-xl transition-all">
+            <Globe className="h-5 w-5 text-primary animate-spin-slow" />
+            <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest border-r border-slate-200 pr-6">Grid Access</span>
+            <select value={language} onChange={(e) => changeLanguage(e.target.value as any)} className="text-xs font-black bg-transparent border-none outline-none cursor-pointer text-primary appearance-none">
+              {NGO_LANGS.map(lang => ( <option key={lang.code} value={lang.code}>{lang.name}</option> ))}
+            </select>
+          </motion.div>
         </div>
       </div>
 
-      {/* 2. EMERGENCY ALERT FEED */}
-      <AnimatePresence mode="popLayout">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {liveEmergencies.map((e, idx) => (
-            <motion.div key={e.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: idx * 0.1 }}>
-              <Alert className="bg-destructive/5 border-l-4 border-l-destructive border-destructive/20 shadow-xl shadow-red-500/5 group hover:scale-[1.02] transition-transform rounded-2xl">
-                <AlertCircle className="h-4 w-4 text-destructive animate-pulse" />
-                <AlertTitle className="font-black text-[10px] uppercase tracking-widest text-destructive">Tactical Alert: {e.place}</AlertTitle>
-                <AlertDescription className="text-xs font-bold text-slate-600 mt-1">{e.issue}</AlertDescription>
-              </Alert>
-            </motion.div>
-          ))}
-        </div>
-      </AnimatePresence>
+      {/* EMERGENCY ALERT STRIP */}
+      <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {liveEmergencies.map((e) => (
+          <motion.div key={e.id} whileHover={{ y: -5, scale: 1.01 }}>
+            <Alert className="border-none shadow-2xl bg-white ring-1 ring-slate-100 rounded-[2.5rem] p-7 group cursor-crosshair overflow-hidden relative">
+              <AlertCircle className="h-6 w-6 text-destructive animate-bounce mb-4" />
+              <AlertTitle className="font-black text-[11px] uppercase tracking-[0.2em] text-destructive mb-3"> {t("Tactical Alert")}: <NeuralText text={e.place} /> </AlertTitle>
+              <AlertDescription className="text-sm font-bold opacity-90 leading-relaxed text-slate-600"> <NeuralText text={e.issue} /> </AlertDescription>
+              <div className="absolute top-0 right-0 h-1 w-0 bg-destructive group-hover:w-full transition-all duration-700" />
+            </Alert>
+          </motion.div>
+        ))}
+      </motion.div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-        
-        {/* LEFT COLUMN: VERIFICATION & CHATBOT */}
-        <div className="xl:col-span-4 space-y-8">
-           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="h-[600px]">
-             <ManualAI />
+      {/* ANALYTICS GRID */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        {[
+          { label: "Network Points", value: n(totalNeeds), icon: Radar, color: 'text-primary' },
+          { label: "Avg Urgency", value: `${n(avgUrgency)}/${n(5)}`, icon: TrendingUp, color: 'text-amber-500' },
+          { label: "Resolved Missions", value: n(resolved), icon: CheckCircle, color: 'text-emerald-500' },
+          { label: "Sector Coverage", value: n(coverageCount), icon: MapPin, color: 'text-blue-500' },
+        ].map((s) => (
+          <motion.div key={s.label} variants={itemVariants} whileHover={cardHover}>
+            <Card className="h-full border-none shadow-3xl rounded-[3.5rem] overflow-hidden group transition-all duration-700 relative bg-white shadow-slate-200">
+              <div className={cn("absolute top-0 left-0 h-1.5 w-full bg-gradient-to-r", s.color.replace('text', 'from'), "to-transparent opacity-0 group-hover:opacity-100 transition-opacity")} />
+              <CardContent className="p-10">
+                <div className={cn("h-16 w-16 rounded-[1.8rem] flex items-center justify-center mb-10 transition-transform group-hover:rotate-[15deg] group-hover:scale-110 shadow-lg bg-slate-50", s.color)}>
+                  <s.icon className="h-8 w-8" />
+                </div>
+                <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 leading-none">{t(s.label)}</p>
+                <p className={cn("text-6xl font-black tracking-tighter italic leading-none transition-colors", s.color)}>{s.value}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
+        <div className="xl:col-span-4 space-y-10">
+           <motion.div variants={itemVariants} whileHover={{ x: 10 }}> <VerificationSystem /> </motion.div>
+           <motion.div variants={itemVariants} className="p-10 rounded-[3.5rem] border border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center text-center gap-6">
+             <Cpu className="h-12 w-12 text-primary animate-pulse" />
+             <p className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-500">Neural Sync Engaged</p>
            </motion.div>
-           <VerificationSystem />
         </div>
 
-        {/* RIGHT COLUMN: CORE ANALYTICS & GRID NODES */}
-        <div className="xl:col-span-8 space-y-8">
-          
-          {/* 3. CORE ANALYTICS RADAR (Preserved) */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: 'Network Points', value: totalNeeds, icon: Radar, color: 'text-primary' },
-              { label: 'Avg Urgency', value: `${avgUrgency}/5`, icon: TrendingUp, color: 'text-amber-500' },
-              { label: 'Resolved Missions', value: resolved, icon: CheckCircle, color: 'text-emerald-500' },
-              { label: 'Sector Coverage', value: coverageCount, icon: MapPin, color: 'text-blue-500' },
-            ].map((s, i) => (
-              <motion.div key={s.label} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-                <Card className={cn(
-                  "h-full border-none shadow-2xl rounded-[2.5rem] group hover:-translate-y-1 transition-all",
-                  theme === 'dark' ? "bg-slate-900" : "bg-white"
-                )}>
-                  <CardContent className="p-8 flex flex-col justify-between h-full">
-                    <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center mb-6", theme === 'dark' ? "bg-white/5" : "bg-slate-50")}>
-                      <s.icon className={`h-6 w-6 ${s.color}`} />
+        <div className="xl:col-span-8 space-y-10">
+          <LayoutGroup>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+              <motion.div variants={itemVariants} whileHover={cardHover} layout>
+                <Card className="border-none shadow-3xl rounded-[4rem] overflow-hidden bg-white shadow-slate-200">
+                  <CardHeader className="p-12 border-b border-slate-50 bg-gradient-to-r from-primary/10 via-transparent to-transparent">
+                    <CardTitle className="text-[13px] font-black uppercase tracking-[0.5em] text-primary flex items-center gap-5">
+                      <Zap className="h-6 w-6 animate-pulse" /> {t("High-Priority Global Backlog")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    {topUrgent.map((need, i) => (
+                      <motion.div key={need.id} whileHover={{ x: 15, backgroundColor: "rgba(59,130,246,0.05)" }} className="flex items-center gap-8 p-10 border-b border-slate-50 last:border-0 transition-all cursor-crosshair group">
+                        <span className="text-5xl font-black text-primary/10 group-hover:text-primary transition-colors italic font-mono">{n(`0${i+1}`)}</span>
+                        <div className="flex-1">
+                          <p className="text-[17px] font-black uppercase tracking-tight leading-tight"><NeuralText text={need.description} /></p>
+                          <p className="text-[11px] font-bold text-slate-500 mt-4 flex items-center gap-3 italic"><MapPin className="h-4 w-4 text-primary" /> <NeuralText text={need.location} /></p>
+                        </div>
+                        <Badge className="bg-destructive hover:bg-destructive text-white rounded-2xl px-6 py-3 font-black italic shadow-xl shadow-destructive/20 border-none">U-{n(need.urgency)}</Badge>
+                      </motion.div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </motion.div>
+              <div className="space-y-10">
+                <motion.div variants={itemVariants} whileHover={cardHover}>
+                  <Card className="bg-gradient-to-br from-primary via-blue-700 to-indigo-950 text-white border-none shadow-[0_40px_80px_-20px_rgba(59,130,246,0.4)] rounded-[4rem] p-12 relative overflow-hidden group">
+                    <Radar className="absolute -right-16 -bottom-16 h-80 w-80 opacity-10 group-hover:rotate-45 transition-transform duration-[3s] ease-linear" />
+                    <MapPin className="h-14 w-14 text-white/40 mb-10" />
+                    <h3 className="text-[12px] font-black uppercase tracking-[0.6em] text-white/50">{t("Critical Hotspot")}</h3>
+                    <p className="text-5xl font-black mt-8 uppercase italic tracking-tighter leading-none"><NeuralText text={mostAffected} /></p>
+                  </Card>
+                </motion.div>
+              </div>
+            </div>
+          </LayoutGroup>
+        </div>
+      </div>
+
+      <motion.div variants={itemVariants} className="pt-24 border-t border-slate-200">
+        <div className="flex flex-col md:flex-row justify-between items-end gap-12 mb-16">
+            <div className="space-y-5">
+              <div className="flex items-center gap-4"> <Layers className="h-8 w-8 text-primary" /> <h2 className="text-6xl font-black uppercase italic tracking-tighter leading-none">{t("Mission Grid Nodes")}</h2> </div>
+              <p className="text-[13px] font-black text-slate-500 uppercase tracking-[0.5em]">{t("Filter sectoral reports")}</p>
+            </div>
+            <div className="flex gap-8">
+              <Select value={filterWard} onValueChange={setFilterWard}>
+                <SelectTrigger className="w-80 border-none shadow-3xl h-20 px-10 font-black text-[12px] uppercase tracking-widest rounded-[2.5rem] bg-white ring-1 ring-slate-200 text-slate-900 transition-all">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-[2rem] border-slate-200 bg-white text-slate-900 p-2">
+                  <SelectItem value="all" className="rounded-xl font-black uppercase text-[10px] tracking-widest">Global Access</SelectItem>
+                  {WARDS.map(w => <SelectItem key={w} value={w} className="rounded-xl font-black uppercase text-[10px] tracking-widest">{w}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+        </div>
+        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          <AnimatePresence mode="popLayout">
+            {filtered.map((n_item) => (
+              <motion.div key={n_item.id} variants={itemVariants} whileHover={cardHover} layout initial="hidden" animate="visible" exit={{ scale: 0.8, opacity: 0 }}>
+                <Card className="border-none shadow-4xl rounded-[4rem] overflow-hidden group transition-all duration-700 relative h-full bg-white shadow-slate-200">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-[4.5rem] group-hover:bg-primary/10 transition-colors" />
+                  <CardContent className="p-12 space-y-12 relative flex flex-col h-full">
+                    <div className="flex items-center justify-between">
+                      <Badge className="text-[11px] font-black uppercase tracking-[0.2em] px-8 py-3 bg-primary/10 text-primary border-none rounded-2xl shadow-sm"> <NeuralText text={n_item.needType} /> </Badge>
+                      <motion.div animate={n_item.status === 'resolved' ? {} : { opacity: [1, 0.4, 1], scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 2 }} className={cn("h-4 w-4 rounded-full shadow-lg", n_item.status === 'resolved' ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-primary shadow-primary/50')} />
                     </div>
-                    <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{s.label}</p>
-                      <p className={cn("text-4xl font-black mt-1 tracking-tighter leading-none", theme === 'dark' ? "text-white" : "text-slate-800")}>{s.value}</p>
+                    <p className="text-2xl font-black uppercase tracking-tight leading-[1.3] min-h-[7rem] group-hover:text-primary transition-colors flex-1"> <NeuralText text={n_item.description} /> </p>
+                    <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-widest pt-10 border-t border-slate-100 opacity-70 italic">
+                      <span className="flex items-center gap-4"><MapPin className="h-5 w-5 text-primary" /> <NeuralText text={n_item.location} /></span>
+                      <span className={cn(n_item.status === 'resolved' ? 'text-emerald-500' : 'text-primary')}>{t(n_item.status)}</span>
                     </div>
                   </CardContent>
                 </Card>
               </motion.div>
             ))}
-          </div>
+          </AnimatePresence>
+        </motion.div>
+      </motion.div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <Card className={cn(
-              "lg:col-span-2 border-none shadow-2xl rounded-[3rem] overflow-hidden transition-all",
-              theme === 'dark' ? "bg-slate-900" : "bg-white"
-            )}>
-              <CardHeader className={cn("border-b p-8", theme === 'dark' ? "bg-white/5 border-slate-800" : "bg-slate-50 border-slate-100")}>
-                <CardTitle className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 flex items-center gap-3">
-                  <TrendingUp className="h-5 w-5 text-primary" /> High-Priority Global Backlog
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                {topUrgent.map((n, i) => (
-                  <div key={n.id} className={cn(
-                    "flex items-center gap-6 p-8 border-b last:border-0 hover:bg-primary/5 transition-all group",
-                    theme === 'dark' ? "border-slate-800" : "border-slate-50"
-                  )}>
-                    <span className="text-3xl font-black text-primary/10 group-hover:text-primary transition-colors w-10">0{i + 1}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className={cn("text-sm font-black uppercase tracking-tight", theme === 'dark' ? "text-slate-200" : "text-slate-800")}>{n.description}</p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase mt-2 tracking-widest flex items-center gap-2">
-                        <MapPin className="h-3 w-3 text-primary" /> {n.location}
-                      </p>
-                    </div>
-                    <Badge className={cn("px-5 py-2 font-black text-[10px] border-none shadow-xl", 
-                      n.urgency >= 4 ? 'bg-destructive text-white shadow-destructive/20' : 'bg-primary text-white shadow-primary/20'
-                    )}>U-{n.urgency}</Badge>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            <div className="space-y-4">
-              <Card className="bg-primary text-white border-none shadow-2xl rounded-[3rem] overflow-hidden relative group">
-                <div className="absolute top-0 right-0 h-40 w-40 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-white/20 transition-all" />
-                <CardContent className="p-8 relative z-10">
-                  <MapPin className="h-10 w-10 text-white/50 mb-6" />
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Critical Hotspot</h3>
-                  <p className="text-3xl font-black mt-2 leading-tight tracking-tighter uppercase">{mostAffected}</p>
-                  <div className="mt-12 pt-6 border-t border-white/10 flex items-center justify-between group-hover:translate-x-2 transition-transform">
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/60">System Recommendation</span>
-                    <ArrowRight className="h-5 w-5" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <div className="bg-emerald-500 text-white p-8 rounded-[3rem] flex items-center gap-6 shadow-2xl shadow-emerald-500/20">
-                <div className="h-14 w-14 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
-                  <CheckCircle className="h-7 w-7 text-white" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Grid Stability</p>
-                  <p className="text-xl font-black tracking-tight">{resolved} Resolved Missions</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 4. MISSION GRID NODES (Preserved) */}
-          <div className={cn("pt-12 border-t", theme === 'dark' ? "border-slate-800" : "border-slate-200")}>
-            <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-10">
-                <div className="space-y-1">
-                  <h2 className="text-xl font-black uppercase italic tracking-tighter">Mission Grid Nodes</h2>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Filter sectoral reports</p>
-                </div>
-                <div className="flex flex-wrap gap-4">
-                  <Select value={filterWard} onValueChange={setFilterWard}>
-                    <SelectTrigger className={cn(
-                      "w-48 border-none shadow-xl h-14 px-6 font-black text-[10px] uppercase tracking-widest rounded-2xl",
-                      theme === 'dark' ? "bg-slate-900 text-white" : "bg-white text-slate-900"
-                    )}><SelectValue placeholder="All Wards" /></SelectTrigger>
-                    <SelectContent className="rounded-2xl">
-                      <SelectItem value="all">Everywhere</SelectItem>
-                      {WARDS.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <Select value={filterType} onValueChange={setFilterType}>
-                    <SelectTrigger className={cn(
-                      "w-48 border-none shadow-xl h-14 px-6 font-black text-[10px] uppercase tracking-widest rounded-2xl",
-                      theme === 'dark' ? "bg-slate-900 text-white" : "bg-white text-slate-900"
-                    )}><SelectValue placeholder="All Types" /></SelectTrigger>
-                    <SelectContent className="rounded-2xl">
-                      <SelectItem value="all">All Sectors</SelectItem>
-                      {NEED_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {filtered.map((n, i) => (
-                <motion.div key={n.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}>
-                  <Card className={cn(
-                    "border-none shadow-xl rounded-[2.5rem] overflow-hidden group hover:shadow-primary/10 transition-all",
-                    theme === 'dark' ? "bg-slate-900" : "bg-white"
-                  )}>
-                    <CardContent className="p-8 space-y-6">
-                      <div className="flex items-center justify-between">
-                        <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest px-4 py-1.5 bg-primary/10 text-primary border-none">
-                          {n.needType}
-                        </Badge>
-                        <div className={cn("h-2.5 w-2.5 rounded-full", n.status === 'resolved' ? 'bg-emerald-500' : 'bg-primary animate-pulse')} />
-                      </div>
-                      
-                      <p className={cn(
-                        "text-[13px] font-black uppercase tracking-tight leading-relaxed min-h-[4rem] line-clamp-3",
-                        theme === 'dark' ? "text-slate-200" : "text-slate-800"
-                      )}>
-                        {n.description}
-                      </p>
-
-                      <div className={cn(
-                        "flex items-center justify-between text-[10px] font-black uppercase tracking-widest border-t pt-6",
-                        theme === 'dark' ? "border-slate-800 text-slate-500" : "border-slate-50 text-slate-400"
-                      )}>
-                        <span className="flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" />{n.location}</span>
-                        <span className={cn(n.status === 'resolved' ? 'text-emerald-500' : 'text-primary')}>{n.status}</span>
-                      </div>
-
-                      {n.status === 'pending' && (
-                        <button
-                          onClick={() => setMatchNeedId(n.id)}
-                          className="w-full mt-4 py-4 bg-primary text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-xl shadow-primary/20 hover:bg-slate-900 active:scale-95"
-                        >
-                          Initialize Match <ArrowRight className="h-4 w-4" />
-                        </button>
-                      )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
+      {/* PEAK FLOATING ACTION BUTTON */}
+      <div className="fixed bottom-12 right-12 z-[1000] flex items-center justify-center">
+        <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.4, 0, 0.4] }} transition={{ repeat: Infinity, duration: 3 }} className="absolute h-28 w-28 bg-primary/30 rounded-full blur-2xl" />
+        <motion.button whileHover={{ scale: 1.15, rotate: 5 }} whileTap={{ scale: 0.9 }} onClick={() => setIsChatOpen(!isChatOpen)} className={cn("relative h-24 w-24 rounded-[2.5rem] shadow-[0_30px_70px_-15px_rgba(59,130,246,0.7)] flex items-center justify-center text-white transition-all duration-500 ring-4 ring-primary/20", isChatOpen ? "bg-slate-900 rotate-90" : "bg-gradient-to-br from-primary to-blue-600")}>
+          {isChatOpen ? <X className="h-10 w-10" /> : <MessageSquare className="h-10 w-10" />}
+        </motion.button>
       </div>
 
-      {matchNeedId && (
-        <VolunteerMatchDialog needId={matchNeedId} onClose={() => setMatchNeedId(null)} />
-      )}
-    </div>
+      {matchNeedId && <VolunteerMatchDialog needId={matchNeedId} onClose={() => setMatchNeedId(null)} />}
+      <style dangerouslySetInnerHTML={{ __html: ` @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } .animate-spin-slow { animation: spin-slow 15s linear infinite; } .custom-scrollbar::-webkit-scrollbar { width: 5px; } .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.3); border-radius: 20px; } `}} />
+    </motion.div>
   );
 }

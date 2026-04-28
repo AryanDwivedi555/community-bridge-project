@@ -1,0 +1,42 @@
+/* --- TACTICAL FOUNDATIONS: LIGHT VS BLACKOUT --- */
+
+@layer base {
+  /* 1. LIGHT MODE FOUNDATION (ONYX) */
+  :root, [data-theme="onyx"] {
+    --background: 210 20% 98%;
+    --foreground: 215 25% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 15%;
+    --border: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+  }
+
+  /* 2. TOTAL BLACKOUT FOUNDATION (ACTIVE FOR ALL OTHER THEMES) */
+  .dark {
+    --background: 240 10% 2.5% !important; /* Force Pitch Black */
+    --foreground: 210 40% 98%;
+    --card: 240 10% 4.5%;
+    --card-foreground: 210 40% 98%;
+    --popover: 240 10% 2.5%;
+    --popover-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 12%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+/* 3. GLOBAL ENFORCEMENT - ADD THIS OUTSIDE THE LAYER BASE IF NEEDED */
+html.dark, 
+body.dark, 
+.dark #root {
+  background-color: hsl(240 10% 2.5%) !important;
+  color: hsl(210 40% 98%);
+}
+
+html, body, #root {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  min-height: 100vh;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}

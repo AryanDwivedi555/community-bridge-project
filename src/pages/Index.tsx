@@ -1,10 +1,8 @@
 import { useApp } from '@/contexts/AppContext';
-import { dictionary } from '@/lib/i18n';
 import { 
   Activity, 
   Users, 
   CheckCircle2, 
-  Clock, 
   ArrowUpRight,
   ShieldCheck,
   Zap,
@@ -16,14 +14,12 @@ import {
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { T } from '@/components/T'; // --- NEURAL BRIDGE INTEGRATED ---
 
 const Dashboard = () => {
   const { language, needs, volunteers, theme } = useApp();
   
-  // Professional Translation Helper (Zero Loss)
-  const t = (key: string) => dictionary[language]?.[key] || key;
-
-  // Tactical Real-time Stats
+  // Tactical Real-time Stats (Preserved Logic)
   const pendingCount = needs.filter(n => n.status === 'pending' || n.status === 'assigned').length;
   const resolvedCount = needs.filter(n => n.status === 'resolved').length;
 
@@ -49,7 +45,9 @@ const Dashboard = () => {
             className="flex items-center gap-3"
           >
             <div className="h-3 w-3 rounded-full bg-primary animate-pulse shadow-[0_0_12px_rgba(59,130,246,0.8)]" />
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">System Uplink: Encrypted</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">
+               <T>System Uplink: Encrypted</T>
+            </span>
           </motion.div>
           
           <motion.h1 
@@ -60,7 +58,7 @@ const Dashboard = () => {
                 theme === 'dark' ? "text-white" : "text-slate-900"
             )}
           >
-            {t('welcome')}
+            <T>welcome</T>
           </motion.h1>
           
           <div className="flex items-center gap-4">
@@ -68,7 +66,7 @@ const Dashboard = () => {
                 <Zap className="h-5 w-5 text-primary fill-primary" />
             </div>
             <p className="text-[12px] font-black uppercase tracking-[0.3em] text-slate-400">
-              {t('affiliation')} — <span className={theme === 'dark' ? "text-primary" : "text-slate-900"}>National Node 01</span>
+              <T>affiliation</T> — <span className={theme === 'dark' ? "text-primary" : "text-slate-900"}><T>National Node 01</T></span>
             </p>
           </div>
         </div>
@@ -85,8 +83,8 @@ const Dashboard = () => {
             <Globe className="h-5 w-5 text-primary" />
           </div>
           <div className="text-left">
-            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Active Locale</p>
-            <p className="text-xs font-black uppercase italic">{language}</p>
+            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1"><T>Active Locale</T></p>
+            <p className="text-xs font-black uppercase italic"><T>{language}</T></p>
           </div>
         </motion.div>
       </div>
@@ -104,7 +102,6 @@ const Dashboard = () => {
                 theme === 'dark' ? "bg-slate-900 border-slate-800 hover:border-primary/40" : "bg-white border-slate-100 hover:border-primary/20 hover:shadow-primary/5"
             )}
           >
-            {/* Background Icon Watermark */}
             <div className={cn(
                 "absolute -right-6 -bottom-6 opacity-[0.03] transition-transform duration-700 group-hover:scale-125 group-hover:rotate-12",
                 theme === 'dark' ? "text-white" : "text-slate-900"
@@ -125,9 +122,9 @@ const Dashboard = () => {
             </div>
             
             <div className="space-y-1 relative z-10">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">{stat.label}</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]"><T>{stat.label}</T></p>
               <p className={cn("text-5xl font-black tracking-tighter leading-none", theme === 'dark' ? "text-white" : "text-slate-900")}>
-                {stat.value}
+                <T>{stat.value}</T>
               </p>
             </div>
           </motion.div>
@@ -144,7 +141,6 @@ const Dashboard = () => {
             theme === 'dark' ? "bg-slate-900 border-slate-800" : "bg-white border-slate-100"
         )}
       >
-        {/* Animated Radar Background Pulsing */}
         <div className="absolute inset-0 flex items-center justify-center opacity-[0.05] pointer-events-none">
           <div className="h-[300px] w-[300px] rounded-full border-2 border-primary animate-ping" />
           <div className="h-[600px] w-[600px] rounded-full border-2 border-primary animate-ping [animation-delay:1.5s]" />
@@ -161,10 +157,10 @@ const Dashboard = () => {
           
           <div className="space-y-4 px-6">
             <h3 className={cn("font-black uppercase tracking-tighter text-3xl italic", theme === 'dark' ? "text-white" : "text-slate-900")}>
-              National Mission Grid
+              <T>National Mission Grid</T>
             </h3>
             <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.5em] max-w-[320px] mx-auto leading-loose opacity-70">
-              Uplinking live telemetry from decentralized field response nodes
+              <T>Uplinking live telemetry from decentralized field response nodes</T>
             </p>
           </div>
 
@@ -185,24 +181,30 @@ const Dashboard = () => {
         )}>
            <div className="flex items-center gap-8">
               <div className="text-left">
-                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-2">Protocol</p>
+                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-2"><T>Protocol</T></p>
                 <div className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                    <p className={cn("text-xs font-black uppercase", theme === 'dark' ? "text-white" : "text-slate-900")}>AES-256 Secure</p>
+                    <p className={cn("text-xs font-black uppercase", theme === 'dark' ? "text-white" : "text-slate-900")}>
+                      <T>AES-256 Secure</T>
+                    </p>
                 </div>
               </div>
               <div className={cn("h-8 w-[1px]", theme === 'dark' ? "bg-slate-800" : "bg-slate-100")} />
               <div className="text-left">
-                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-2">Latency</p>
+                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-2"><T>Latency</T></p>
                 <div className="flex items-center gap-2">
                     <Target className="h-4 w-4 text-primary" />
-                    <p className={cn("text-xs font-black uppercase", theme === 'dark' ? "text-white" : "text-slate-900")}>14ms Stable</p>
+                    <p className={cn("text-xs font-black uppercase", theme === 'dark' ? "text-white" : "text-slate-900")}>
+                      <T>14ms Stable</T>
+                    </p>
                 </div>
               </div>
            </div>
            
            <button className="group flex items-center gap-4 bg-primary px-8 py-4 rounded-[1.5rem] shadow-2xl shadow-primary/20 hover:bg-slate-950 transition-all active:scale-95">
-             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white">Initialize Scan</span>
+             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white">
+                <T>Initialize Scan</T>
+             </span>
              <ChevronRight className="h-4 w-4 text-white group-hover:translate-x-1 transition-transform" />
            </button>
         </div>

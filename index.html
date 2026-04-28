@@ -1,59 +1,111 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="antialiased">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/src/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     
-    <title>Community Bridge | National Strategic Grid</title>
+    <title>National Strategic Grid | Community Bridge</title>
+    <meta name="title" content="National Strategic Grid | Community Bridge" />
     <meta name="description" content="Decentralized intelligence node for cross-organizational aid coordination and local mission management." />
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
 
-    <meta name="theme-color" content="#2563eb" />
+    <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)" />
 
     <script>
       (function() {
-        const theme = localStorage.getItem('theme') || 'light';
-        if (theme === 'dark') {
+        const theme = localStorage.getItem('theme');
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (theme === 'dark' || (!theme && systemDark)) {
           document.documentElement.classList.add('dark');
         }
       })();
     </script>
 
     <style>
-      /* Tactical Loading State Animation */
+      :root {
+        --bg-light: #f8fafc;
+        --bg-dark: #020617;
+        --primary: #2563eb;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg-light);
+        font-family: 'Geist', sans-serif;
+      }
+
+      .dark body { background: var(--bg-dark); }
+
+      /* ZENITH SCANNING LOADER */
       #initial-loader {
         position: fixed;
         inset: 0;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        background: #f8fafc;
+        background: var(--bg-light);
         z-index: 9999;
-        transition: opacity 0.5s ease;
+        transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       }
-      .dark #initial-loader { background: #020617; }
+      .dark #initial-loader { background: var(--bg-dark); }
       
-      .loader-pulse {
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
-        background: #2563eb;
-        animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      .loader-container {
+        position: relative;
+        width: 60px;
+        height: 60px;
       }
-      
+
+      .loader-ring {
+        position: absolute;
+        inset: 0;
+        border: 2px solid rgba(37, 99, 235, 0.1);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 1s cubic-bezier(0.55, 0.1, 0.15, 0.9) infinite;
+      }
+
+      .loader-core {
+        position: absolute;
+        inset: 15px;
+        background: var(--primary);
+        border-radius: 8px;
+        animation: pulse 1.5s ease-in-out infinite;
+        box-shadow: 0 0 20px rgba(37, 99, 235, 0.4);
+      }
+
+      .loader-text {
+        margin-top: 24px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5em;
+        color: #64748b;
+        animation: blink 2s steps(2) infinite;
+      }
+
+      @keyframes spin { to { transform: rotate(360deg); } }
       @keyframes pulse {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: .5; transform: scale(0.9); }
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(0.8); opacity: 0.5; }
       }
+      @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
   </head>
 
-  <body class="antialiased selection:bg-blue-500/20 selection:text-blue-600">
+  <body class="selection:bg-blue-500/30 selection:text-blue-700">
     <div id="initial-loader">
-      <div class="loader-pulse"></div>
+      <div class="loader-container">
+        <div class="loader-ring"></div>
+        <div class="loader-core"></div>
+      </div>
+      <div class="loader-text">Initializing Uplink</div>
     </div>
 
     <div id="root"></div>
@@ -61,12 +113,13 @@
     <script type="module" src="/src/main.tsx"></script>
 
     <script>
-      // Clean up loader once the React hydration finishes
+      // Seamless Fade-out Protocol
       window.addEventListener('load', () => {
         const loader = document.getElementById('initial-loader');
         if (loader) {
           loader.style.opacity = '0';
-          setTimeout(() => loader.remove(), 500);
+          loader.style.pointerEvents = 'none';
+          setTimeout(() => loader.remove(), 600);
         }
       });
     </script>
