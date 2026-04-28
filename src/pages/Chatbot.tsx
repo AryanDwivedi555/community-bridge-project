@@ -86,6 +86,8 @@ export default function VerificationSystem() {
       return;
     }
     
+    // FIXED: Added OTP generation for mission verification
+    const generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
     const finalCategory = formData.category === 'custom' ? formData.customCategory : formData.category;
     const urgency = calculateAIUrgency(formData.affected, finalCategory);
     
@@ -97,10 +99,14 @@ export default function VerificationSystem() {
       peopleAffected: formData.affected,
       lat: formData.lat,
       lng: formData.lng,
-      contact: { name: formData.name, email: formData.email, phone: formData.phone }
+      contact: { name: formData.name, email: formData.email, phone: formData.phone },
+      otp: generatedOtp // Crucial for Verification phase
     } as any);
 
-    toast.success(<T>Tactical Uplink Success</T>);
+    toast.success(<T>Tactical Uplink Success</T>, { 
+      description: `Verification Code: ${generatedOtp} (In production, this is sent via SMS)`
+    });
+    
     setActiveTab("pending");
     setFormData({ name: '', email: '', phone: '', location: '', category: 'food', customCategory: '', title: '', description: '', affected: 1, lat: 25.5941, lng: 85.1376 });
     setCaptchaInput("");
@@ -282,7 +288,6 @@ export default function VerificationSystem() {
         </TabsContent>
       </Tabs>
 
-      {/* MAP SELECTOR OVERLAY */}
       <AnimatePresence>
         {showMapSelector && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[2000] bg-slate-950/90 backdrop-blur-xl p-10 flex items-center justify-center">
