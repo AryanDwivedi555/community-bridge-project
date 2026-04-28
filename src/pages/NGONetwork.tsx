@@ -89,7 +89,11 @@ export default function NGONetwork() {
         className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
       >
         <div>
-          <h1 className="text-5xl font-black tracking-tighter uppercase italic leading-none">
+          {/* 🛡️ RECOVERY FIX: Headline color forced to white in dark mode */}
+          <h1 className={cn(
+            "text-5xl font-black tracking-tighter uppercase italic leading-none transition-colors",
+            theme === 'dark' ? "text-white !opacity-100" : "text-slate-900"
+          )}>
             <T>Federated Network</T>
           </h1>
           <p className="text-[11px] font-black text-emerald-400 uppercase tracking-[0.4em] mt-4 flex items-center gap-3">
@@ -204,7 +208,11 @@ export default function NGONetwork() {
                     <span className="text-slate-950 text-xl font-black italic">{ngo.logo}</span>
                   </div>
                   <div className="min-w-0">
-                    <p className={cn("font-black text-sm uppercase tracking-tight truncate", theme === 'dark' ? "text-white" : "text-slate-900")}>
+                    {/* 🛡️ RECOVERY FIX: Organization Name forced white in dark mode */}
+                    <p className={cn(
+                      "font-black text-sm uppercase tracking-tight truncate", 
+                      theme === 'dark' ? "text-white !opacity-100" : "text-slate-900"
+                    )}>
                       <T>{ngo.name}</T>
                     </p>
                     <div className="text-[10px] font-black text-slate-500 flex items-center gap-2.5 mt-2.5 uppercase tracking-widest opacity-60">
@@ -232,14 +240,24 @@ export default function NGONetwork() {
               <h2 className="text-[11px] font-black uppercase tracking-[0.5em] text-slate-500 flex items-center gap-5">
                 <Activity className="h-6 w-6 text-red-500 animate-pulse" /> <T>Mission Dispatch Center</T>
               </h2>
+              {/* 🛡️ RECOVERY FIX: Tabs Background and Border */}
               <TabsList className={cn(
                 "p-2 rounded-[1.8rem] h-16",
-                theme === 'dark' ? "bg-slate-900/60" : "bg-slate-100"
+                theme === 'dark' ? "bg-slate-900/80 border border-white/5" : "bg-slate-100"
               )}>
-                <TabsTrigger value="network" className="px-12 rounded-2xl font-black text-[11px] uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-300">
+                <TabsTrigger value="network" className={cn(
+                  "px-12 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all",
+                  "data-[state=active]:bg-primary data-[state=active]:text-white",
+                  theme === 'dark' ? "text-slate-400" : "text-slate-500"
+                )}>
                   <T>Global Queue</T>
                 </TabsTrigger>
-                <TabsTrigger value="my" className="px-12 rounded-2xl font-black text-[11px] uppercase tracking-widest data-[state=active]:bg-emerald-500 data-[state=active]:text-slate-950 transition-all duration-300">
+                {/* 🛡️ RECOVERY FIX: Locked Invisibility for 'Node Assignments' */}
+                <TabsTrigger value="my" className={cn(
+                  "px-12 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all",
+                  "data-[state=active]:bg-emerald-500 data-[state=active]:text-slate-950",
+                  theme === 'dark' ? "text-white !opacity-100 !visible" : "text-slate-600"
+                )}>
                   <T>Node Assignments</T>
                 </TabsTrigger>
               </TabsList>
@@ -324,9 +342,7 @@ export default function NGONetwork() {
                             </p>
                             <div className="mt-10 flex justify-between items-center pt-8 border-t border-white/5">
                               <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-4 opacity-70"><MapPin className="h-5 w-5 text-emerald-400" /> <T>{n.location}</T></span>
-                              <Button variant="ghost" className="h-12 px-8 rounded-2xl text-[10px] font-black uppercase tracking-widest text-emerald-400 hover:bg-emerald-500/5 transition-colors">
-                                <T>Logistics Data</T> <Target className="h-5 w-5 ml-4" />
-                              </Button>
+                              <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-3"><Users className="h-4 w-4 text-emerald-400" /> <T>{n.peopleAffected}</T> <T>Impacted</T></span>
                             </div>
                           </CardContent>
                         </Card>

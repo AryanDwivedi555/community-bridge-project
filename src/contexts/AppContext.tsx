@@ -3,13 +3,12 @@ import { NeedReport, Volunteer, NGO, mockNeeds, mockVolunteers, mockNGOs } from 
 import { toast } from 'sonner';
 
 export type LanguageCode = 'en' | 'hi' | 'bn' | 'bho' | 'mai' | 'mr' | 'es' | 'fr';
-// --- NEW: THEME TYPE DEFINITION ---
 export type ThemeCode = 'onyx' | 'midnight' | 'matrix' | 'crimson' | 'cobalt' | 'amber' | 'violet';
 
 /**
  * ELITE APP STATE INTERFACE
  * Standardized tactical data hub for Community Bridge.
- * NO FEATURES REMOVED. ALL NEW REQUESTS INTEGRATED.
+ * NO FEATURES REMOVED. PERSISTENCE ENGINE HARDENED.
  */
 interface AppState {
   needs: NeedReport[];
@@ -18,19 +17,20 @@ interface AppState {
   isOnline: boolean;
   syncingCount: number;
   language: LanguageCode;
-  theme: ThemeCode; // Updated to support 7 themes
+  theme: ThemeCode;
   voiceAgent: {
     enabled: boolean;
     voiceIndex: number;
     rate: number;
     pitch: number;
   };
-  toggleTheme: () => void; // Preserved for backward compatibility
-  changeTheme: (theme: ThemeCode) => void; // NEW: Multi-theme controller
+  toggleTheme: () => void;
+  changeTheme: (theme: ThemeCode) => void;
   updateVoiceConfig: (config: Partial<AppState['voiceAgent']>) => void;
   changeLanguage: (lang: LanguageCode) => void;
   addNeed: (need: Omit<NeedReport, 'id' | 'createdAt' | 'status' | 'otp'>) => void;
   addVolunteer: (vol: Omit<Volunteer, 'id' | 'tasksCompleted' | 'avatar'>) => void;
+  removeVolunteer: (id: string) => void; // 🛡️ NEW: TACTICAL TERMINATION LOGIC
   addNGO: (ngo: Omit<NGO, 'id' | 'logo'>) => void;
   toggleOnline: () => void;
   acceptNeed: (needId: string, ngoName: string) => void;
@@ -53,19 +53,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     lng: item.lng || 78.9629 + (Math.random() - 0.5) * 12
   }));
 
-  // --- 2. CORE STATE & HYDRATION ---
+  // --- 2. CORE STATE & HYDRATION (PERSISTENCE FIXED) ---
   const [needs, setNeeds] = useState<NeedReport[]>(() => {
     const saved = localStorage.getItem('community-bridge-needs');
     const initialData = saved ? JSON.parse(saved) : mockNeeds;
     return injectCoordinates(initialData);
   });
 
-  const [volunteers, setVolunteers] = useState<Volunteer[]>(() => injectCoordinates(mockVolunteers));
+  // 🛡️ FIXED: Volunteers now load from localStorage to survive refreshes
+  const [volunteers, setVolunteers] = useState<Volunteer[]>(() => {
+    const saved = localStorage.getItem('national_grid_volunteers');
+    const initialData = saved ? JSON.parse(saved) : mockVolunteers;
+    return injectCoordinates(initialData);
+  });
+
   const [ngos, setNGOs] = useState<NGO[]>(mockNGOs);
   const [isOnline, setIsOnline] = useState(true);
   const [syncingCount, setSyncingCount] = useState(0);
   
-  // Updated initial theme logic to support 7 themes
   const [theme, setTheme] = useState<ThemeCode>(() => 
     (localStorage.getItem('cb-theme-pref') as ThemeCode) || 'onyx'
   );
@@ -81,23 +86,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     pitch: 1.0
   });
 
-  // --- 3. AUTO-SAVE & SYSTEM SYNC (ZENITH MULTI-THEME HANDSHAKE) ---
+  // --- 3. AUTO-SAVE & SYSTEM SYNC ---
   useEffect(() => {
     localStorage.setItem('community-bridge-needs', JSON.stringify(needs));
+    localStorage.setItem('national_grid_volunteers', JSON.stringify(volunteers)); // 🛡️ Save volunteers
     localStorage.setItem('cb-theme-pref', theme);
     
-    // Injects the theme ID into the data-attribute for index.css logic
-    document.documentElement.setAttribute('data-theme', theme);
+    const root = document.documentElement;
+    root.setAttribute('data-theme', theme);
     
-    // Maintain Tailwind's .dark class for components using dark: prefix (Onyx is light)
     if (theme === 'onyx') {
-      document.documentElement.classList.remove('dark');
+      root.classList.remove('dark');
+      root.style.backgroundColor = "";
     } else {
-      document.documentElement.classList.add('dark');
+      root.classList.add('dark');
+      root.style.backgroundColor = "#020617"; 
     }
-  }, [needs, theme]);
+  }, [needs, volunteers, theme]); // Added volunteers to dependency array
 
-  // NEW: PEAK MULTI-THEME CONTROLLER
   const changeTheme = useCallback((newTheme: ThemeCode) => {
     setTheme(newTheme);
     const themeNames: Record<ThemeCode, string> = {
@@ -107,7 +113,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     toast.success(`Activating Profile: ${themeNames[newTheme]}`);
   }, []);
 
-  // Preserved toggleTheme (mapped to main dark/light variants)
   const toggleTheme = useCallback(() => setTheme(prev => prev === 'onyx' ? 'midnight' : 'onyx'), []);
   
   const updateVoiceConfig = useCallback((config: Partial<typeof voiceAgent>) => {
@@ -124,7 +129,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     toast.success(`Switching to ${langNames[lang] || lang.toUpperCase()}`);
   }, []);
 
-  // --- 4. TACTICAL ACTION LOGIC (STRICT PRESERVATION) ---
+  // --- 4. TACTICAL ACTION LOGIC ---
   
   const addNeed = useCallback((need: Omit<NeedReport, 'id' | 'createdAt' | 'status' | 'otp'>) => {
     const generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
@@ -140,9 +145,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setNeeds(prev => [newNeed, ...prev]);
     if (!isOnline) {
-      toast.warning("Field Node: Offline Mode", { description: `Stored locally. Verification OTP is: ${generatedOtp}` });
+      toast.warning("Field Node: Offline Mode", { description: `Stored locally. Verification OTP: ${generatedOtp}` });
     } else {
-      toast.success("Tactical Report Uplinked", { description: `Verification OTP: ${generatedOtp}. Share this only when help arrives.`, duration: 12000 });
+      toast.success("Tactical Report Uplinked", { description: `Verification OTP: ${generatedOtp}.`, duration: 12000 });
     }
   }, [isOnline]);
 
@@ -173,14 +178,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const initials = vol.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     const newVol: Volunteer = { 
         ...vol, 
-        id: `v${Date.now()}`, 
-        tasksCompleted: 0, 
-        avatar: initials || '??',
-        lat: 20.5937 + (Math.random() - 0.5) * 4, 
-        lng: 78.9629 + (Math.random() - 0.5) * 4 
+        id: (vol as any).id || `v${Date.now()}`, 
+        tasksCompleted: (vol as any).tasksCompleted || 0, 
+        avatar: (vol as any).avatar || initials || '??',
+        lat: vol.lat || 20.5937 + (Math.random() - 0.5) * 4, 
+        lng: vol.lng || 78.9629 + (Math.random() - 0.5) * 4 
     };
     setVolunteers(prev => [newVol, ...prev]);
-    toast.success("Agent Enlisted in Tactical Network.");
+    if (!(vol as any).id) toast.success("Agent Enlisted in Tactical Network.");
+  }, []);
+
+  // 🛡️ NEW: DELETE LOGIC (Center-Targeted Removal)
+  const removeVolunteer = useCallback((id: string) => {
+    setVolunteers(prev => prev.filter(v => v.id !== id));
+    toast.error("Agent Discharged", { description: "Node terminated from National Grid." });
   }, []);
 
   const addNGO = useCallback((ngo: Omit<NGO, 'id' | 'logo'>) => {
@@ -196,17 +207,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const target = needs.find(n => n.id === needId);
     if (target?.otp === enteredOtp) {
       setNeeds(prev => prev.map(n => n.id === needId ? { ...n, status: 'resolved' } : n));
-      toast.success("Identity Verified. Mission Success: Report Resolved.");
+      toast.success("Identity Verified. Mission Success.");
       return true;
     }
-    toast.error("Security Authentication Failed", { description: "The OTP entered does not match the requester's secret key." });
+    toast.error("Security Authentication Failed");
     return false;
   }, [needs]);
 
   return (
     <AppContext.Provider value={{ 
       needs, volunteers, ngos, isOnline, syncingCount, language, theme, voiceAgent,
-      toggleTheme, changeTheme, updateVoiceConfig, changeLanguage, addNeed, addVolunteer, addNGO, toggleOnline, acceptNeed, resolveNeed 
+      toggleTheme, changeTheme, updateVoiceConfig, changeLanguage, addNeed, addVolunteer, removeVolunteer, addNGO, toggleOnline, acceptNeed, resolveNeed 
     }}>
       {children}
     </AppContext.Provider>

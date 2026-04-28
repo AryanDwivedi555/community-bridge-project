@@ -1,31 +1,65 @@
-/* 1. DIRECTIVES FIRST */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 2. THEME IMPORTS SECOND */
-@import './space-theme.css'; 
-
-/* 3. CUSTOM LAYERS THIRD */
 @layer base {
-  /* YOUR 7 TACTICAL ACCENTS */
-  :root, [data-theme="onyx"] {
-    --primary: 221 83% 53%;
+  /* 1. CORE FOUNDATION (Light Mode Base) */
+  :root {
     --background: 210 20% 98%;
     --foreground: 215 25% 15%;
-    /* ... rest of onyx vars */
+    --primary: 221 83% 53%; /* Default Blue */
+    --card: 0 0% 100%;
+    --border: 214 20% 90%;
   }
 
+  /* 2. THE 7 TACTICAL SKINS (Vibrancy Logic - Independent of Dark Mode) */
   [data-theme="midnight"] { --primary: 217 91% 60%; }
   [data-theme="matrix"]   { --primary: 142 71% 45%; }
   [data-theme="crimson"]  { --primary: 0 84% 60%;   }
   [data-theme="cobalt"]   { --primary: 199 89% 48%; }
   [data-theme="amber"]    { --primary: 38 92% 50%;  }
   [data-theme="violet"]   { --primary: 262 83% 58%; }
+  [data-theme="onyx"]     { --primary: 221 83% 53%; }
+
+  /* 3. VOID ENGINE (Background/Card Logic Only) */
+  .dark {
+    --background: 240 10% 2% !important;
+    --foreground: 210 40% 98% !important;
+    --card: 240 10% 4% !important;
+    --border: 240 10% 12% !important;
+  }
 }
 
 @layer base {
-  body {
-    @apply bg-background text-foreground transition-colors duration-500;
+  /* 4. HEADLINE FREEDOM (Fixes Yellow Circle) */
+  .dark h1, .dark .headline-container, .dark [class*="text-4xl"] {
+    background-color: transparent !important; 
+    background-image: none !important;
+    color: #ffffff !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* 5. SKIN VISIBILITY */
+  .dark .tactical-skin-selector span, .dark [class*="rounded-full"] {
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    opacity: 1 !important;
+  }
+
+  /* 6. GLOBAL GAP DESTRUCTION */
+  .dark body, .dark #root, .dark main, .dark .bg-white, .dark .bg-slate-50 {
+    background-color: #020617 !important;
+    color: #f8fafc !important;
+  }
+
+  /* 7. TEXT CONTRAST ENFORCEMENT */
+  .dark p, .dark span, .dark .text-slate-600 {
+    color: #94a3b8 !important;
+  }
+}
+
+@layer utilities {
+  .skin-glow {
+    @apply shadow-[0_0_10px_rgba(255,255,255,0.1)] hover:scale-110 transition-transform cursor-pointer;
   }
 }

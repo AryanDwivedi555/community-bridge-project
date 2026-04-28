@@ -18,7 +18,7 @@ export default function Reports() {
 
   const { needs, theme } = context;
 
-  // 1. DATA AGGREGATION ENGINE (Preserved)
+  // 1. DATA AGGREGATION ENGINE
   const byType = needs.reduce((acc, n) => { acc[n.needType] = (acc[n.needType] || 0) + 1; return acc; }, {} as Record<string, number>);
   const byWard = needs.reduce((acc, n) => { acc[n.location] = (acc[n.location] || 0) + 1; return acc; }, {} as Record<string, number>);
   const byStatus = needs.reduce((acc, n) => { acc[n.status] = (acc[n.status] || 0) + 1; return acc; }, {} as Record<string, number>);
@@ -36,9 +36,9 @@ export default function Reports() {
   };
 
   const cardVariants = {
-    hidden: { y: 30, opacity: 0, scale: 0.9 },
+    hidden: { y: 30, opacity: 0, scale: 0.9, filter: "blur(10px)" },
     visible: { 
-      y: 0, opacity: 1, scale: 1,
+      y: 0, opacity: 1, scale: 1, filter: "blur(0px)",
       transition: { type: "spring", stiffness: 100, damping: 12 } 
     }
   };
@@ -57,7 +57,8 @@ export default function Reports() {
       animate="visible"
       className={cn(
         "space-y-12 pb-20 transition-all duration-1000 relative overflow-hidden px-4 md:px-8",
-        theme === 'dark' ? "bg-[#020617] text-white" : "bg-slate-50 text-slate-900"
+        /* 🛡️ FIX: Changed bg-slate-50 to transparent to let App.tsx background through */
+        theme === 'dark' ? "bg-transparent text-white" : "bg-transparent text-slate-900"
       )}
     >
       {/* BACKGROUND AMBIENCE PARTICLES */}
@@ -74,7 +75,7 @@ export default function Reports() {
         />
       </div>
 
-      {/* 1. COMMAND HEADER - Scalable for Translation */}
+      {/* 1. COMMAND HEADER */}
       <motion.div variants={cardVariants} className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 relative z-10 pt-6">
         <div className="space-y-3">
           <div className="flex items-center gap-3">
@@ -89,33 +90,40 @@ export default function Reports() {
                 <T>Uplink Active</T>
              </Badge>
           </div>
-          {/* FIX: Removed 'leading-none' to prevent text cutting in regional scripts */}
-          <h1 className="text-5xl lg:text-7xl font-black tracking-tighter uppercase italic leading-tight bg-gradient-to-r from-primary via-blue-600 to-indigo-600 bg-clip-text text-transparent py-2">
+          <h1 className={cn(
+            "text-5xl lg:text-7xl font-black tracking-normal uppercase italic leading-[1.4] py-2",
+            /* 🛡️ FIX: Ensure white text in dark mode specifically for the title */
+            theme === 'dark' ? "text-white" : "text-primary"
+          )}>
             <T>Impact Analytics</T>
           </h1>
-          <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3">
-            <Activity className="h-4 w-4 text-emerald-500 animate-pulse" /> <T>Real-time Transparency & Mission Tracking</T>
+          <p className={cn(
+            "text-sm font-bold uppercase tracking-[0.3em] flex items-center gap-3",
+            theme === 'dark' ? "text-slate-400" : "text-slate-500"
+          )}>
+            <Activity className="h-4 w-4 text-primary animate-pulse" /> <T>Real-time Transparency & Mission Tracking</T>
           </p>
         </div>
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <Button onClick={handleExport} className="h-16 px-12 rounded-[1.5rem] font-black uppercase tracking-widest text-[11px] bg-primary text-white shadow-2xl shadow-primary/30 border-none hover:bg-blue-700 transition-all">
+          <Button onClick={handleExport} className="h-16 px-12 rounded-[1.5rem] font-black uppercase tracking-widest text-[11px] bg-primary text-white shadow-2xl shadow-primary/30 border-none hover:opacity-90 transition-all">
             <Download className="mr-3 h-5 w-5" /> <T>Export Intelligence</T>
           </Button>
         </motion.div>
       </motion.div>
 
-      {/* 2. STAT STICKER BLOCKS - Dynamic Contrast */}
+      {/* 2. STAT STICKER BLOCKS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 relative z-10">
         {[
-          { label: "Total Reach", val: totalAffected, sub: "Supported Citizens", icon: Target, color: "text-blue-600 dark:text-primary", bg: "from-blue-600/10 to-transparent", border: "border-blue-500/20", sticker: <TrendingUp className="h-16 w-16 text-blue-500/10 absolute -right-4 -top-4 rotate-12" /> },
-          { label: "Resolution", val: `${resolutionRate}%`, sub: "Grid Success Rate", icon: CheckCircle2, color: "text-emerald-600 dark:text-emerald-400", bg: "from-emerald-600/10 to-transparent", border: "border-emerald-500/20", sticker: <Sparkles className="h-16 w-16 text-emerald-500/10 absolute -right-4 -top-4 animate-pulse" /> },
-          { label: "Active Nodes", val: byStatus['pending'] || 0, sub: "Pending Response", icon: Activity, color: "text-amber-600 dark:text-amber-400", bg: "from-amber-600/10 to-transparent", border: "border-amber-500/20", sticker: <Zap className="h-16 w-16 text-amber-500/10 absolute -right-4 -top-4 animate-bounce" /> },
-          { label: "Sync Health", val: "100%", sub: "Uplink Optimized", icon: ShieldCheck, color: "text-indigo-600 dark:text-indigo-400", bg: "from-indigo-600/10 to-transparent", border: "border-indigo-500/20", sticker: <ShieldCheck className="h-16 w-16 text-indigo-500/10 absolute -right-4 -top-4 -rotate-12" /> }
+          { label: "Total Reach", val: totalAffected, sub: "Supported Citizens", icon: Target, color: "text-blue-500", bg: "from-blue-600/10 to-transparent", border: "border-blue-500/20", sticker: <TrendingUp className="h-16 w-16 text-blue-500/10 absolute -right-4 -top-4 rotate-12" /> },
+          { label: "Resolution", val: `${resolutionRate}%`, sub: "Grid Success Rate", icon: CheckCircle2, color: "text-emerald-500", bg: "from-emerald-600/10 to-transparent", border: "border-emerald-500/20", sticker: <Sparkles className="h-16 w-16 text-emerald-500/10 absolute -right-4 -top-4 animate-pulse" /> },
+          { label: "Active Nodes", val: byStatus['pending'] || 0, sub: "Pending Response", icon: Activity, color: "text-amber-500", bg: "from-amber-600/10 to-transparent", border: "border-amber-500/20", sticker: <Zap className="h-16 w-16 text-amber-500/10 absolute -right-4 -top-4 animate-bounce" /> },
+          { label: "Sync Health", val: "100%", sub: "Uplink Optimized", icon: ShieldCheck, color: "text-primary", bg: "from-primary/10 to-transparent", border: "border-primary/20", sticker: <ShieldCheck className="h-16 w-16 text-primary/10 absolute -right-4 -top-4 -rotate-12" /> }
         ].map((s, i) => (
           <motion.div key={s.label} variants={cardVariants} whileHover={{ y: -15, scale: 1.02 }}>
             <Card className={cn(
               "border-none shadow-xl rounded-[3rem] overflow-hidden group relative transition-all duration-500 min-h-[220px] flex flex-col justify-center",
-              theme === 'dark' ? `bg-slate-900/40 backdrop-blur-3xl border-t ${s.border}` : "bg-white border border-slate-200"
+              /* 🛡️ FIX: Transparent background for dark mode cards to prevent white gaps */
+              theme === 'dark' ? `bg-slate-900/60 backdrop-blur-3xl border-t ${s.border}` : "bg-white border border-slate-200"
             )}>
               {s.sticker}
               <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none", s.bg)} />
@@ -128,7 +136,7 @@ export default function Reports() {
                     <s.icon className={cn("h-7 w-7", s.color)} />
                 </motion.div>
                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 mb-2"><T>{s.label}</T></p>
-                <p className={cn("text-5xl font-black tracking-tighter leading-tight mb-3", theme === 'dark' ? "text-white" : "text-slate-900")}>
+                <p className={cn("text-6xl font-black tracking-tighter leading-none mb-3", theme === 'dark' ? "text-white" : "text-slate-900")} style={{ color: i === 3 ? 'hsl(var(--primary))' : 'inherit' }}>
                   <T>{s.val}</T>
                 </p>
                 <div className="h-1 w-12 bg-primary/30 rounded-full mb-4 group-hover:w-full transition-all duration-700" />
@@ -139,7 +147,7 @@ export default function Reports() {
         ))}
       </div>
 
-      {/* 3. LOGISTICS MATRIX - Space-aware for Translation */}
+      {/* 3. LOGISTICS MATRIX */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 relative z-10">
         <motion.div variants={cardVariants}>
           <Card className={cn("h-full border-none shadow-2xl rounded-[4rem] overflow-hidden", theme === 'dark' ? "bg-slate-900/40 backdrop-blur-3xl" : "bg-white border border-slate-200")}>
@@ -158,9 +166,9 @@ export default function Reports() {
                   <div className={cn("h-4 w-full rounded-full overflow-hidden shadow-inner p-1", theme === 'dark' ? "bg-slate-950" : "bg-slate-200")}>
                     <motion.div 
                       initial={{ width: 0 }}
-                      animate={{ width: `${(count / needs.length) * 100}%` }}
+                      animate={{ width: `${(count / (needs.length || 1)) * 100}%` }}
                       transition={{ type: "spring", stiffness: 40, damping: 10 }}
-                      className="h-full bg-gradient-to-r from-blue-600 to-cyan-400 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.6)]"
+                      className="h-full bg-gradient-to-r from-primary to-cyan-400 rounded-full shadow-[0_0_20px_hsla(var(--primary),0.6)]"
                     />
                   </div>
                 </div>
@@ -184,7 +192,7 @@ export default function Reports() {
                   className={cn(
                     "flex items-center justify-between p-6 rounded-[2rem] transition-all border group cursor-pointer",
                     theme === 'dark' ? "bg-slate-950/50 border-white/5" : "bg-slate-50 border-slate-100 shadow-sm"
-                )}>
+                  )}>
                   <span className="text-[13px] font-black uppercase tracking-tight truncate max-w-[180px] text-slate-700 dark:text-slate-300">
                     <T>{ward.includes(' - ') ? ward.split(' - ')[1] : ward}</T>
                   </span>
@@ -215,7 +223,7 @@ export default function Reports() {
                   className={cn(
                     "flex items-center justify-between p-8 rounded-[2.5rem] border-2 transition-all relative overflow-hidden group",
                     theme === 'dark' ? "bg-slate-950/50 border-white/5" : "bg-slate-100 border-slate-200"
-                )}>
+                  )}>
                   <div className="flex items-center gap-6">
                     <div className={cn("h-5 w-5 rounded-full animate-ping shadow-glow", 
                       status === 'resolved' ? 'bg-emerald-500' : status === 'pending' ? 'bg-amber-500' : 'bg-primary'
@@ -230,7 +238,7 @@ export default function Reports() {
         </motion.div>
       </div>
 
-      {/* 4. MASTER MISSION LOG - Safety Grid */}
+      {/* 4. MASTER MISSION LOG */}
       <motion.div variants={cardVariants}>
         <Card className={cn(
           "border-none shadow-7xl rounded-[5rem] overflow-hidden transition-all relative border border-slate-200 dark:border-white/10",
@@ -270,8 +278,7 @@ export default function Reports() {
                           </Badge>
                         </TableCell>
                         <TableCell className="max-w-[400px]">
-                          {/* FIX: Removed 'truncate' to prevent translated data loss */}
-                          <p className="text-[18px] font-black uppercase tracking-tight text-slate-900 dark:text-white group-hover:text-primary transition-colors leading-tight">
+                          <p className={cn("text-[18px] font-black uppercase tracking-normal group-hover:text-primary transition-colors leading-relaxed py-1", theme === 'dark' ? "text-white" : "text-slate-900")}>
                             <T>{n.description}</T>
                           </p>
                           <p className="text-[11px] font-bold text-slate-500 uppercase mt-3 tracking-widest">
@@ -304,7 +311,7 @@ export default function Reports() {
 
       <style dangerouslySetInnerHTML={{ __html: `
         .shadow-7xl { box-shadow: 0 80px 180px -40px rgba(0,0,0,0.3); }
-        .shadow-glow { filter: drop-shadow(0 0 12px rgba(59,130,246,0.6)); }
+        .shadow-glow { filter: drop-shadow(0 0 12px hsla(var(--primary),0.6)); }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         @keyframes scan {
           0% { transform: translateY(-100%); }

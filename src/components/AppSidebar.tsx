@@ -34,7 +34,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { T } from '@/components/T'; // Integrated Neural Bridge
+import { T } from '@/components/T';
 
 export function AppSidebar() {
   const { state } = useSidebar();
@@ -45,6 +45,10 @@ export function AppSidebar() {
     voiceAgent, updateVoiceConfig 
   } = useApp();
 
+  // 🛡️ PEAK SAFETY LOGIC: Use theme from context instead of document.documentElement
+  // This prevents the "Blank Screen" crash during server-side hydration.
+  const isSpaceActive = theme !== 'onyx';
+  
   const t = (key: string) => dictionary[language]?.[key] || key;
 
   const items = [
@@ -59,13 +63,10 @@ export function AppSidebar() {
   return (
     <Sidebar 
       collapsible="icon" 
-      className={cn(
-        "border-r transition-colors duration-500",
-        theme === 'dark' ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-white"
-      )}
+      /* ELITE DAYLIGHT LOCK: Fixed white background for Command Lead clarity */
+      className="border-r border-slate-200 bg-white transition-all duration-700 shadow-[10px_0_30px_-15px_rgba(0,0,0,0.05)]"
     >
       <SidebarContent className="pt-6">
-        {/* BRANDING SECTION */}
         <div className={cn("px-4 mb-8 transition-all duration-300", isCollapsed ? "flex justify-center" : "px-6")}>
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
@@ -73,7 +74,7 @@ export function AppSidebar() {
             </div>
             {!isCollapsed && (
               <div className="flex flex-col">
-                <span className={cn("text-[12px] font-black tracking-tighter leading-tight uppercase italic", theme === 'dark' ? "text-white" : "text-slate-900")}>
+                <span className="text-[12px] font-black tracking-tighter leading-tight uppercase italic text-slate-900">
                   Community
                 </span>
                 <span className="text-[11px] font-black text-primary leading-tight mt-1 uppercase tracking-widest">
@@ -84,7 +85,6 @@ export function AppSidebar() {
           </div>
         </div>
 
-        {/* NAVIGATION MENU */}
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-2 px-2">
@@ -94,10 +94,7 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end={item.url === '/'}
-                      className={cn(
-                        "flex items-center gap-3 px-4 rounded-2xl transition-all duration-300",
-                        theme === 'dark' ? "hover:bg-slate-800 text-slate-400" : "hover:bg-slate-50 text-slate-600"
-                      )}
+                      className="flex items-center gap-3 px-4 rounded-2xl transition-all duration-300 hover:bg-slate-50 text-slate-600"
                     >
                       <item.icon className="h-5 w-5 shrink-0" />
                       {!isCollapsed && (
@@ -114,24 +111,22 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      {/* FOOTER: Fixed Overlay Buffer Logic */}
       <SidebarFooter className={cn(
-        "p-4 space-y-4 border-t transition-colors",
-        // BUFFER: Added pb-28 to lift footer content above the floating blue command button
-        isCollapsed ? "pb-20" : "pb-28", 
-        theme === 'dark' ? "bg-slate-900/50 border-slate-800" : "bg-slate-50 border-slate-100"
+        "p-4 space-y-4 border-t transition-colors bg-slate-50 border-slate-100",
+        isCollapsed ? "pb-20" : "pb-28"
       )}>
         
-        {/* TACTICAL CONTROLS */}
         <div className={cn("flex items-center justify-between gap-2", isCollapsed ? "flex-col" : "px-2")}>
             <button 
               onClick={toggleTheme}
               className={cn(
-                "h-10 w-10 rounded-xl flex items-center justify-center transition-all shrink-0",
-                theme === 'dark' ? "bg-amber-500/10 text-amber-500" : "bg-slate-200 text-slate-600 shadow-sm"
+                "h-10 w-10 rounded-xl flex items-center justify-center transition-all duration-500 shrink-0 border",
+                isSpaceActive 
+                  ? "bg-slate-950 text-amber-500 border-slate-800 shadow-[0_0_15px_rgba(245,158,11,0.2)]" 
+                  : "bg-white text-slate-400 border-slate-200 shadow-sm"
               )}
             >
-              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {isSpaceActive ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
 
             {!isCollapsed && (
@@ -148,14 +143,10 @@ export function AppSidebar() {
             )}
         </div>
 
-        {/* LANGUAGE SELECTOR - Enhanced Contrast */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div className={cn(
-              "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all border",
-              theme === 'dark' 
-                ? "bg-slate-950/50 border-white/5 text-slate-300 hover:bg-slate-800" 
-                : "bg-white border-slate-200 text-slate-700 shadow-sm hover:border-primary/30",
+              "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all border bg-white border-slate-200 text-slate-700 shadow-sm hover:border-primary/30",
               isCollapsed && "justify-center"
             )}>
               <Languages className="h-4 w-4 text-primary" />
@@ -166,17 +157,14 @@ export function AppSidebar() {
               )}
             </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" side="right" className={cn(
-            "w-52 rounded-2xl shadow-2xl p-2 z-[1001]",
-            theme === 'dark' ? "bg-slate-900 border-slate-800 text-white" : "bg-white"
-          )}>
+          <DropdownMenuContent align="start" side="right" className="w-52 rounded-2xl shadow-2xl p-2 z-[1001] bg-white border-slate-100">
             {(Object.keys(languageNames) as LanguageCode[]).map((lang) => (
               <DropdownMenuItem 
                 key={lang} 
                 onClick={() => changeLanguage(lang)}
                 className={cn(
                   "text-[10px] font-black uppercase tracking-widest cursor-pointer rounded-xl px-4 py-3 mb-1 transition-all",
-                  language === lang ? "bg-primary text-white" : theme === 'dark' ? "hover:bg-slate-800" : "hover:bg-slate-50"
+                  language === lang ? "bg-primary text-white" : "hover:bg-slate-50 text-slate-600"
                 )}
               >
                 {languageNames[lang]}
@@ -185,17 +173,14 @@ export function AppSidebar() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* GRID NODE STATUS */}
         <div className={cn(
-          "flex items-center gap-3 p-4 rounded-2xl border transition-all",
-          theme === 'dark' ? "bg-slate-950 border-slate-800" : "bg-white border-slate-200 shadow-inner",
+          "flex items-center gap-3 p-4 rounded-2xl border transition-all bg-white border-slate-200 shadow-inner",
           isCollapsed && "justify-center"
         )}>
           <div className="relative">
              <Radio className={cn("h-4 w-4", isOnline ? "text-emerald-500" : "text-amber-500")} />
              <span className={cn(
-               "absolute -top-1 -right-1 h-2 w-2 rounded-full border-2 transition-colors animate-pulse",
-               theme === 'dark' ? "border-slate-950" : "border-white",
+               "absolute -top-1 -right-1 h-2 w-2 rounded-full border-2 border-white transition-colors animate-pulse",
                isOnline ? "bg-emerald-500" : "bg-amber-500"
              )} />
           </div>

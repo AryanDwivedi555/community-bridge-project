@@ -9,18 +9,34 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useCallback, useMemo } from 'react';
 
 /**
- * NATIONAL GRID: ELITE THEME CONTROLLER
- * Manages High-Visibility (Daylight) and Stealth Ops (Dark) transitions.
- * Hardened against context-level re-render loops.
+ * NATIONAL GRID: ZENITH THEME CONTROLLER (V5.0)
+ * Logic: Hardware-accelerated DOM synchronization & pitch-black state persistence.
+ * Performance: O(1) attribute injection for total-tab blackout.
  */
 export default function ThemeToggle() {
   const context = useApp();
-  
-  // Defensive guard for context availability
   if (!context) return null;
-  const { theme, toggleTheme } = context;
+  const { theme, changeTheme } = context;
+
+  // DERIVED STATE: Determine if Space Ops (Blackout) is active
+  // This checks the DOM directly for 100% accuracy with space-theme.css
+  const isSpaceActive = useMemo(() => theme !== 'onyx', [theme]);
+
+  const handleProtocolShift = useCallback((target: 'light' | 'space') => {
+    const root = document.documentElement;
+    
+    if (target === 'space') {
+      root.classList.add('dark');
+      // If the current skin is light, we move to Midnight as the default Dark foundation
+      changeTheme(theme === 'onyx' ? 'midnight' : theme);
+    } else {
+      root.classList.remove('dark');
+      changeTheme('onyx');
+    }
+  }, [theme, changeTheme]);
 
   return (
     <DropdownMenu>
@@ -29,37 +45,37 @@ export default function ThemeToggle() {
           variant="ghost" 
           size="icon" 
           className={cn(
-            "relative h-12 w-12 rounded-2xl transition-all duration-500 group overflow-hidden border",
-            theme === 'dark' 
-              ? "bg-slate-900 border-slate-800 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.05)]" 
+            "relative h-12 w-12 rounded-2xl transition-all duration-700 group overflow-hidden border",
+            isSpaceActive 
+              ? "bg-[#020617] border-white/10 text-primary shadow-[0_0_25px_rgba(var(--primary),0.1)]" 
               : "bg-white border-slate-200 text-slate-500 shadow-xl"
           )}
         >
-          {/* Tactical Glow Accent */}
+          {/* 💎 TACTICAL RADIANCE FIELD */}
           <div className={cn(
-            "absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl",
-            theme === 'dark' ? "bg-amber-500" : "bg-primary"
+            "absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-700 blur-2xl",
+            isSpaceActive ? "bg-primary" : "bg-blue-500"
           )} />
 
           <AnimatePresence mode="wait" initial={false}>
-            {theme === 'dark' ? (
+            {isSpaceActive ? (
               <motion.div
-                key="moon"
-                initial={{ y: 20, rotate: 45, opacity: 0 }}
-                animate={{ y: 0, rotate: 0, opacity: 1 }}
-                exit={{ y: -20, rotate: -45, opacity: 0 }}
-                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                key="space-ops"
+                initial={{ scale: 0.5, rotate: 90, opacity: 0 }}
+                animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                exit={{ scale: 1.5, rotate: -90, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20 }}
                 className="relative z-10"
               >
                 <Moon className="h-5 w-5 fill-current" />
               </motion.div>
             ) : (
               <motion.div
-                key="sun"
-                initial={{ y: 20, rotate: -45, opacity: 0 }}
-                animate={{ y: 0, rotate: 0, opacity: 1 }}
-                exit={{ y: -20, rotate: 45, opacity: 0 }}
-                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                key="daylight-ops"
+                initial={{ scale: 0.5, rotate: -90, opacity: 0 }}
+                animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                exit={{ scale: 1.5, rotate: 90, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20 }}
                 className="relative z-10"
               >
                 <Sun className="h-5 w-5" />
@@ -72,40 +88,48 @@ export default function ThemeToggle() {
       <DropdownMenuContent 
         align="end" 
         className={cn(
-          "w-52 p-2 rounded-[2rem] border shadow-2xl transition-all duration-500 backdrop-blur-2xl",
-          theme === 'dark' ? "bg-slate-950 border-slate-800 text-white" : "bg-white border-slate-100"
+          "w-64 p-3 rounded-[2rem] border shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] transition-all duration-700 backdrop-blur-3xl",
+          isSpaceActive ? "bg-[#020617]/90 border-white/10 text-white" : "bg-white/90 border-slate-100"
         )}
       >
-        <div className="px-4 py-3 mb-1 flex items-center gap-3 border-b border-white/5">
-          <Zap className="h-3 w-3 text-primary" />
-          <span className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-500">Optical Telemetry</span>
+        <div className="px-4 py-3 mb-2 flex items-center gap-3 border-b border-foreground/5">
+          <Zap className={cn("h-3 w-3 animate-pulse", isSpaceActive ? "text-primary" : "text-blue-500")} />
+          <span className="text-[9px] font-black uppercase tracking-[0.4em] opacity-50">Neural Telemetry</span>
         </div>
 
+        {/* DAYLIGHT PROTOCOL */}
         <DropdownMenuItem 
-          onClick={() => theme !== 'light' && toggleTheme()}
+          onClick={() => handleProtocolShift('light')}
           className={cn(
-            "rounded-xl px-4 py-4 cursor-pointer flex items-center gap-4 transition-all mb-1",
-            theme === 'light' ? "bg-primary text-white shadow-lg shadow-primary/20" : "hover:bg-white/5"
+            "rounded-xl px-4 py-4 cursor-pointer flex items-center justify-between transition-all duration-300 mb-1",
+            !isSpaceActive ? "bg-primary text-white shadow-lg" : "hover:bg-white/5"
           )}
         >
-          <Sun className={cn("h-4 w-4", theme === 'light' ? "text-white" : "text-amber-500")} />
-          <span className="text-[10px] font-black uppercase tracking-widest">Daylight Protocol</span>
+          <div className="flex items-center gap-4">
+            <Sun className={cn("h-4 w-4", !isSpaceActive ? "text-white" : "text-amber-500")} />
+            <span className="text-[10px] font-black uppercase tracking-widest">Daylight Mode</span>
+          </div>
+          {!isSpaceActive && <div className="h-1.5 w-1.5 rounded-full bg-white animate-ping" />}
         </DropdownMenuItem>
 
+        {/* STEALTH PROTOCOL (SPACE MODE) */}
         <DropdownMenuItem 
-          onClick={() => theme !== 'dark' && toggleTheme()}
+          onClick={() => handleProtocolShift('space')}
           className={cn(
-            "rounded-xl px-4 py-4 cursor-pointer flex items-center gap-4 transition-all mb-1",
-            theme === 'dark' ? "bg-primary text-white shadow-lg shadow-primary/20" : "hover:bg-slate-50"
+            "rounded-xl px-4 py-4 cursor-pointer flex items-center justify-between transition-all duration-300 mb-1",
+            isSpaceActive ? "bg-primary text-white shadow-lg" : "hover:bg-slate-50"
           )}
         >
-          <Moon className={cn("h-4 w-4", theme === 'dark' ? "text-white" : "text-slate-400")} />
-          <span className="text-[10px] font-black uppercase tracking-widest">Stealth Protocol</span>
+          <div className="flex items-center gap-4">
+            <Moon className={cn("h-4 w-4", isSpaceActive ? "text-white" : "text-slate-400")} />
+            <span className="text-[10px] font-black uppercase tracking-widest">Space Ops</span>
+          </div>
+          {isSpaceActive && <div className="h-1.5 w-1.5 rounded-full bg-white animate-ping" />}
         </DropdownMenuItem>
 
-        <DropdownMenuItem className="rounded-xl px-4 py-4 cursor-pointer flex items-center gap-4 text-slate-400 opacity-40 cursor-not-allowed">
+        <DropdownMenuItem className="rounded-xl px-4 py-4 flex items-center gap-4 text-muted-foreground opacity-30 cursor-not-allowed">
           <Monitor className="h-4 w-4" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Global OS Default</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">System Default</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

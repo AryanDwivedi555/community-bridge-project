@@ -93,7 +93,7 @@ export default function MissionControl() {
         theme === 'dark' ? "bg-[#020617]" : "bg-slate-50"
       )}
     >
-      {/* 1. DYNAMIC COMMAND HEADER */}
+      {/* 1. DYNAMIC COMMAND HEADER (Contrast & Theme Logic Fixed) */}
       <AnimatePresence>
         {!isFullScreen && (
           <motion.header 
@@ -101,8 +101,10 @@ export default function MissionControl() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -100, opacity: 0 }}
             className={cn(
-              "flex items-center justify-between px-10 py-5 rounded-[2.5rem] shadow-5xl border backdrop-blur-3xl z-50",
-              theme === 'dark' ? "bg-slate-900/60 border-white/5" : "bg-white/80 border-slate-200"
+              "flex items-center justify-between px-10 py-5 rounded-[2.5rem] shadow-5xl border backdrop-blur-3xl z-50 transition-all duration-500",
+              theme === 'dark' 
+                ? "bg-slate-950/40 border-primary/20 shadow-[0_0_40px_rgba(var(--primary),0.1)]" 
+                : "bg-white/60 border-primary/10 shadow-[0_0_30px_rgba(var(--primary),0.05)]"
             )}
           >
             <div className="flex items-center gap-6">
@@ -114,20 +116,39 @@ export default function MissionControl() {
                 <ShieldCheck className="text-white h-7 w-7" />
               </motion.div>
               <div className="space-y-1">
-                <h1 className="text-4xl font-black tracking-tighter uppercase italic leading-none bg-gradient-to-r from-primary to-cyan-400 bg-clip-text text-transparent">
+                {/* 🛡️ RECOVERY: Forced Visibility for Header Title */}
+                <h1 className={cn(
+                  "text-4xl font-black tracking-tighter uppercase italic leading-none transition-colors",
+                  theme === 'dark' ? "text-white !opacity-100" : "text-slate-900"
+                )}>
                   <T>Tactical Map</T>
                 </h1>
                 <div className="flex items-center gap-3 px-1">
                   <Activity className="h-3 w-3 text-emerald-500 animate-pulse" />
-                  <span className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-500"><T>Grid Operational</T></span>
+                  {/* 🛡️ RECOVERY: Forced Visibility for Operational Label */}
+                  <span className={cn(
+                    "text-[9px] font-black uppercase tracking-[0.4em]",
+                    theme === 'dark' ? "text-slate-200" : "text-slate-600"
+                  )}>
+                    <T>Grid Operational</T>
+                  </span>
                 </div>
               </div>
             </div>
             
             <div className="flex items-center gap-8">
-              <div className="hidden md:flex items-center gap-3 px-6 py-2 bg-slate-500/5 rounded-full border border-white/5">
+              {/* 🛡️ RECOVERY: Sector Scanning Label Visibility Fixed */}
+              <div className={cn(
+                "hidden md:flex items-center gap-3 px-6 py-2 rounded-full border transition-all",
+                theme === 'dark' ? "bg-slate-900/50 border-white/10" : "bg-slate-100/50 border-slate-200"
+              )}>
                 <Radar className="h-4 w-4 text-primary animate-spin-slow" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500"><T>Sector Scanning</T></span>
+                <span className={cn(
+                  "text-[10px] font-black uppercase tracking-widest",
+                  theme === 'dark' ? "text-white !opacity-100" : "text-slate-800"
+                )}>
+                  <T>Sector Scanning</T>
+                </span>
               </div>
               <Badge className="bg-emerald-500 text-slate-950 font-black px-6 py-3 rounded-full text-[10px] gap-3 shadow-3xl animate-in fade-in zoom-in duration-500">
                 <div className="h-2 w-2 rounded-full bg-slate-950 animate-ping" />
@@ -182,7 +203,7 @@ export default function MissionControl() {
                <motion.div 
                   animate={{ rotate: 360 }}
                   transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                  className="absolute top-1/2 left-1/2 w-[200%] h-[200%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg,transparent_0deg,rgba(59,130,246,0.3)_360deg)]"
+                  className="absolute top-1/2 left-1/2 w-[200%] h-[200%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg,transparent_0deg,rgba(var(--primary),0.3)_360deg)]"
                />
             </div>
           </motion.section>
@@ -278,10 +299,10 @@ export default function MissionControl() {
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .animate-spin-slow { animation: spin-slow 15s linear infinite; }
-        .shadow-glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+        .shadow-glow { box-shadow: 0 0 20px rgba(var(--primary), 0.5); }
         .shadow-7xl { box-shadow: 0 50px 100px -20px rgba(0,0,0,0.9); }
         .custom-scrollbar::-webkit-scrollbar { width: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.3); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(var(--primary), 0.3); border-radius: 10px; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
       `}} />
     </motion.div>

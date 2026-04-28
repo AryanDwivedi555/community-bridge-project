@@ -1,17 +1,53 @@
-/* --- NATIONAL GRID: TOTAL BLACKOUT ENGINE --- */
+/* --- NATIONAL GRID: ZERO-GAP VOID PROTOCOL --- */
 
-/* Use the .dark class on the root to override foundations */
-:root.dark {
-  --background: 240 10% 2% !important; 
-  --foreground: 210 40% 98% !important;
-  --card: 240 10% 4% !important;
-  --card-foreground: 210 40% 98% !important;
-  --border: 240 10% 12% !important;
-  --muted: 240 10% 10% !important;
+/* 1. ROOT LEVEL BLACKOUT */
+/* This kills the white "gaps" by forcing the actual browser viewport to black */
+:root.dark, 
+:root.dark body, 
+:root.dark #root,
+:root.dark main {
+  background-color: #020617 !important; 
+  color: #f8fafc !important;
+  transition: all 0.4s ease-in-out !important;
 }
 
-/* Force background on the viewport */
-html.dark, body.dark {
-  background-color: hsl(240 10% 2%) !important;
-  color: hsl(210 40% 98%) !important;
+/* 2. THE GAP-KILLER (Recursive Override) */
+/* This finds every white background in your Header and Content areas 
+   and forces them to be transparent so the black base shows through */
+:root.dark [class*="bg-white"],
+:root.dark [class*="bg-slate-50"],
+:root.dark [class*="bg-background"],
+:root.dark header,
+:root.dark .app-header {
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
 }
+
+/* 3. TACTICAL CARD ELEVATION */
+/* Since we killed the white gaps, we make the cards a "Deep Navy Glass" 
+   so the text remains readable and professional */
+:root.dark .bg-card,
+:root.dark [class*="rounded-"],
+:root.dark .border {
+  background-color: rgba(15, 23, 42, 0.5) !important; /* Semi-transparent navy */
+  backdrop-filter: blur(10px) !important;            /* Glass effect */
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* 4. TEXT VISIBILITY SAFETY */
+/* Ensures text is never invisible. Forces white for primary text 
+   and dimmed slate for secondary text */
+:root.dark h1, :root.dark h2, :root.dark h3, :root.dark .text-slate-900 {
+  color: #ffffff !important;
+}
+:root.dark p, :root.dark span, :root.dark .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+/* 5. ACCENT ADAPTERS (The 7 Skins) */
+/* This ensures your buttons/circles (like the red one) stay vibrant */
+:root.dark[data-theme="crimson"] { --primary: 0 84% 60%; }
+:root.dark[data-theme="matrix"] { --primary: 142 71% 45%; }
+/* Add your other themes here... */
